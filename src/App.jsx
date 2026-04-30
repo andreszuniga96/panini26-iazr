@@ -9,19 +9,9 @@ import {
  * ==========================================
  * 1. CONFIGURACIÓN DE BASE DE DATOS (MOCK CLOUD-READY)
  * ==========================================
- * Se ha reemplazado la importación de '@supabase/supabase-js' por un simulador
- * interno (Mock) para evitar el error de compilación del empaquetador en este entorno.
- * Mantiene EXACTAMENTE la misma estructura de funciones async/await.
- * * PARA PASAR A PRODUCCIÓN REAL FUERA DE ESTE ENTORNO:
- * 1. Descomenta las siguientes dos líneas:
- * // import { createClient } from '@supabase/supabase-js';
- * // const supabase = createClient('TU_URL', 'TU_KEY');
- * 2. Elimina el objeto `supabase` simulado de abajo.
  */
-
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
-// Simulador exacto del cliente de Supabase para el entorno visual (Canvas)
 const supabase = {
   from: (table) => ({
     select: (cols) => {
@@ -86,6 +76,10 @@ const PAISES = [
 const generarCatalogoOficial = () => {
   const catalogo = [];
   PAISES.forEach(pais => {
+    // Agregar el cromo "00" explícitamente para el grupo Especial
+    if (pais.sigla === 'FWC') {
+      catalogo.push({ id: `FWC-00`, sigla: 'FWC', numero: '00', tipo: 'especial_fwc', grupo: 'Especial' });
+    }
     for (let i = 1; i <= 20; i++) {
       let tipo = 'retrato';
       if (pais.sigla === 'FWC') tipo = 'especial_fwc';
@@ -115,7 +109,7 @@ function usePaniniState() {
       try {
         const [resInv, resFin] = await Promise.all([
           supabase.from('inventario').select('id, obtenido, cantidad_repetidas'),
-          supabase.from('finanzas').select('*').eq('id', 1).single() // Asumiendo fila única para el usuario (id:1)
+          supabase.from('finanzas').select('*').eq('id', 1).single()
         ]);
         
         const newInv = {};
@@ -203,12 +197,13 @@ function usePaniniState() {
 
 /**
  * ==========================================
- * 4. DASHBOARD ENGINE (Cálculo Granular)
+ * 4. DASHBOARD ENGINE (Cálculo Granular Dinámico)
  * ==========================================
  */
 function useAlbumStats(inventario) {
   return useMemo(() => {
-    let totales = { obtenidos: 0, faltantes: 980, porcentaje: 0 };
+    const totalCromos = CATALOGO_ARRAY.length; // Cálculo dinámico para adaptarse a 981
+    let totales = { obtenidos: 0, faltantes: totalCromos, porcentaje: 0 };
     let grupos = {};
     let paises = {};
 
@@ -216,15 +211,18 @@ function useAlbumStats(inventario) {
       const obtenido = inventario[s.id]?.obtenido ? 1 : 0;
       totales.obtenidos += obtenido;
 
-      if (!grupos[s.grupo]) grupos[s.grupo] = { obtenidos: 0, total: s.grupo === 'Especial' ? 20 : 80 };
+      // Conteo dinámico de totales por grupo y país
+      if (!grupos[s.grupo]) grupos[s.grupo] = { obtenidos: 0, total: 0 };
+      grupos[s.grupo].total += 1;
       grupos[s.grupo].obtenidos += obtenido;
 
-      if (!paises[s.sigla]) paises[s.sigla] = { obtenidos: 0, total: 20 };
+      if (!paises[s.sigla]) paises[s.sigla] = { obtenidos: 0, total: 0 };
+      paises[s.sigla].total += 1;
       paises[s.sigla].obtenidos += obtenido;
     });
 
-    totales.faltantes = 980 - totales.obtenidos;
-    totales.porcentaje = ((totales.obtenidos / 980) * 100).toFixed(1);
+    totales.faltantes = totalCromos - totales.obtenidos;
+    totales.porcentaje = ((totales.obtenidos / totalCromos) * 100).toFixed(1);
 
     Object.keys(grupos).forEach(g => {
       grupos[g].porcentaje = ((grupos[g].obtenidos / grupos[g].total) * 100).toFixed(0);
@@ -261,7 +259,6 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
     });
   };
 
-  // Lógica Long Press (800ms) para Deshacer
   const handlePressStart = (id, obtenido) => {
     if (!obtenido) return;
     pressTimer.current = setTimeout(() => {
@@ -288,7 +285,19 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   return (
     <div className="pb-28">
       <div className="sticky top-0 z-30 bg-gradient-to-b from-[#8a1538] to-[#600e26] text-white p-4 shadow-lg">
-        <h1 className="text-xl font-black flex items-center gap-2 mb-3"><BookOpen size={24}/> Mi Álbum</h1>
+        {/* Se agregó justify-center para centrar el icono y el texto */}
+        <h1 className="text-xl font-black flex items-center justify-center gap-2 mb-3">
+          <BookOpen size={24}/> 
+          Mi Álbum By 
+          <a 
+            href="https://portafolio-iazr.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline hover:text-amber-200 transition-colors"
+          >
+            IAZR
+          </a>
+        </h1>
         <div className="flex justify-between items-center bg-black/20 rounded-xl p-3 backdrop-blur-sm">
           <div>
             <p className="text-xs text-amber-200/80 font-semibold mb-1">PROGRESO GLOBAL</p>
@@ -322,7 +331,6 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
                   </h2>
                 </div>
                 <div className="text-right">
-                  {/* PORCENTAJES GRUPO */}
                   <span className="text-sm font-black text-gray-700">
                     {gStats.obtenidos} <span className="text-gray-400 font-medium">/ {gStats.total} ({gStats.porcentaje}%)</span>
                   </span>
@@ -343,9 +351,8 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
                             <span className="w-1.5 h-4 bg-[#8a1538] rounded-full inline-block"></span>
                             {pais.nombre} <span className="text-xs font-normal text-gray-400">({pais.sigla})</span>
                           </h3>
-                          {/* PORCENTAJES SELECCIÓN */}
                           <span className={`text-xs font-bold px-2 py-1 rounded-full ${pStats.porcentaje == 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                            {pStats.obtenidos} / 20 ({pStats.porcentaje}%)
+                            {pStats.obtenidos} / {pStats.total} ({pStats.porcentaje}%)
                           </span>
                         </div>
                         
@@ -363,12 +370,12 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
                                 onMouseDown={() => handlePressStart(sticker.id, obtenido)}
                                 onMouseUp={handlePressEnd}
                                 onMouseLeave={handlePressEnd}
-                                onContextMenu={(e) => { if (obtenido) e.preventDefault(); }} // Previene menú nativo
+                                onContextMenu={(e) => { if (obtenido) e.preventDefault(); }}
                                 className={`relative flex items-center justify-center h-[60px] transition-all cursor-pointer select-none
-                                  ${obtenido ? 'bg-amber-50/70' : isPending ? 'bg-blue-50 border-2 border-blue-500 z-10' : 'bg-white opacity-45 grayscale hover:opacity-70'}
+                                  ${obtenido ? 'bg-emerald-100 border-emerald-300 z-10' : isPending ? 'bg-blue-50 border-2 border-blue-500 z-10' : 'bg-white opacity-45 grayscale hover:opacity-70'}
                                 `}
                               >
-                                <span className={`text-[12px] font-black tracking-tight ${obtenido ? 'text-gray-900' : isPending ? 'text-blue-700' : 'text-gray-500'}`}>
+                                <span className={`text-[12px] font-black tracking-tight ${obtenido ? 'text-emerald-900' : isPending ? 'text-blue-700' : 'text-gray-500'}`}>
                                   {sticker.id.replace('-', ' ')}
                                 </span>
                               </div>
