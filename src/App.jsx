@@ -9,19 +9,14 @@ import {
  * ==========================================
  * 1. CONFIGURACIÓN DE BASE DE DATOS (MOCK CLOUD-READY)
  * ==========================================
- * Se ha reemplazado la importación de '@supabase/supabase-js' por un simulador
- * interno (Mock) para evitar el error de compilación del empaquetador en este entorno.
  * Mantiene EXACTAMENTE la misma estructura de funciones async/await.
- * * PARA PASAR A PRODUCCIÓN REAL FUERA DE ESTE ENTORNO:
- * 1. Descomenta las siguientes dos líneas:
+ * PARA PRODUCCIÓN REAL, descomenta:
  * // import { createClient } from '@supabase/supabase-js';
  * // const supabase = createClient('TU_URL', 'TU_KEY');
- * 2. Elimina el objeto `supabase` simulado de abajo.
  */
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
-// Simulador exacto del cliente de Supabase para el entorno visual (Canvas)
 const supabase = {
   from: (table) => ({
     select: (cols) => {
@@ -36,9 +31,7 @@ const supabase = {
               if (query._eq) data = data.filter(d => d[query._eq.key] === query._eq.val);
               if (query._single) resolve({ data: data[0] || null, error: null });
               else resolve({ data, error: null });
-            } catch (e) {
-              resolve({ data: null, error: e });
-            }
+            } catch (e) { resolve({ data: null, error: e }); }
           }, 150);
         }
       };
@@ -62,13 +55,13 @@ const supabase = {
 
 /**
  * ==========================================
- * 2. ARQUITECTURA DE DATOS
+ * 2. ARQUITECTURA DE DATOS OFICIAL 2026
  * ==========================================
  */
-const GRUPOS = ['Especial', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+const GRUPOS = ['Especial', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'Coca-Cola'];
 
 const PAISES = [
-  { sigla: 'FWC', nombre: 'Cromos Especiales FIFA', grupo: 'Especial' },
+  { sigla: 'FWC', nombre: 'Especiales FIFA', grupo: 'Especial' },
   { sigla: 'MEX', nombre: 'México', grupo: 'A' }, { sigla: 'RSA', nombre: 'Sudáfrica', grupo: 'A' }, { sigla: 'KOR', nombre: 'Corea del Sur', grupo: 'A' }, { sigla: 'CZE', nombre: 'República Checa', grupo: 'A' },
   { sigla: 'CAN', nombre: 'Canadá', grupo: 'B' }, { sigla: 'BIH', nombre: 'Bosnia y Herz.', grupo: 'B' }, { sigla: 'QAT', nombre: 'Qatar', grupo: 'B' }, { sigla: 'SUI', nombre: 'Suiza', grupo: 'B' },
   { sigla: 'BRA', nombre: 'Brasil', grupo: 'C' }, { sigla: 'MAR', nombre: 'Marruecos', grupo: 'C' }, { sigla: 'HAI', nombre: 'Haití', grupo: 'C' }, { sigla: 'SCO', nombre: 'Escocia', grupo: 'C' },
@@ -80,18 +73,32 @@ const PAISES = [
   { sigla: 'FRA', nombre: 'Francia', grupo: 'I' }, { sigla: 'SEN', nombre: 'Senegal', grupo: 'I' }, { sigla: 'IRQ', nombre: 'Irak', grupo: 'I' }, { sigla: 'NOR', nombre: 'Noruega', grupo: 'I' },
   { sigla: 'ARG', nombre: 'Argentina', grupo: 'J' }, { sigla: 'ALG', nombre: 'Argelia', grupo: 'J' }, { sigla: 'AUT', nombre: 'Austria', grupo: 'J' }, { sigla: 'JOR', nombre: 'Jordania', grupo: 'J' },
   { sigla: 'POR', nombre: 'Portugal', grupo: 'K' }, { sigla: 'COD', nombre: 'RD Congo', grupo: 'K' }, { sigla: 'UZB', nombre: 'Uzbekistán', grupo: 'K' }, { sigla: 'COL', nombre: 'Colombia', grupo: 'K' },
-  { sigla: 'ENG', nombre: 'Inglaterra', grupo: 'L' }, { sigla: 'CRO', nombre: 'Croacia', grupo: 'L' }, { sigla: 'GHA', nombre: 'Ghana', grupo: 'L' }, { sigla: 'PAN', nombre: 'Panamá', grupo: 'L' }
+  { sigla: 'ENG', nombre: 'Inglaterra', grupo: 'L' }, { sigla: 'CRO', nombre: 'Croacia', grupo: 'L' }, { sigla: 'GHA', nombre: 'Ghana', grupo: 'L' }, { sigla: 'PAN', nombre: 'Panamá', grupo: 'L' },
+  { sigla: 'CC', nombre: 'Coca-Cola (Extras)', grupo: 'Coca-Cola' }
 ];
 
 const generarCatalogoOficial = () => {
   const catalogo = [];
   PAISES.forEach(pais => {
-    for (let i = 1; i <= 20; i++) {
-      let tipo = 'retrato';
-      if (pais.sigla === 'FWC') tipo = 'especial_fwc';
-      else if (i === 1) tipo = 'escudo_especial';
-      else if (i === 2) tipo = 'grupal';
-      catalogo.push({ id: `${pais.sigla}-${i}`, sigla: pais.sigla, numero: i, tipo, grupo: pais.grupo });
+    if (pais.sigla === 'FWC') {
+      // Especiales: 00 y FWC 1 al FWC 19
+      catalogo.push({ id: '00', sigla: 'FWC', numero: '00', tipo: 'especial_fwc', grupo: pais.grupo });
+      for (let i = 1; i <= 19; i++) {
+        catalogo.push({ id: `FWC-${i}`, sigla: 'FWC', numero: i.toString(), tipo: 'especial_fwc', grupo: pais.grupo });
+      }
+    } else if (pais.sigla === 'CC') {
+      // Coca-Cola Extras: CC 1 al CC 14
+      for (let i = 1; i <= 14; i++) {
+        catalogo.push({ id: `CC-${i}`, sigla: 'CC', numero: i.toString(), tipo: 'coca_cola', grupo: pais.grupo });
+      }
+    } else {
+      // Equipos Normales: 1 al 20
+      for (let i = 1; i <= 20; i++) {
+        let tipo = 'retrato';
+        if (i === 1) tipo = 'escudo_especial';
+        else if (i === 2) tipo = 'grupal';
+        catalogo.push({ id: `${pais.sigla}-${i}`, sigla: pais.sigla, numero: i.toString(), tipo, grupo: pais.grupo });
+      }
     }
   });
   return catalogo;
@@ -100,9 +107,19 @@ const generarCatalogoOficial = () => {
 const CATALOGO_ARRAY = generarCatalogoOficial();
 const CATALOGO_MAP = CATALOGO_ARRAY.reduce((acc, s) => { acc[s.id] = s; return acc; }, {});
 
+// Helper para títulos de grupo
+const getGrupoTitulo = (grupo) => {
+  if (grupo === 'Especial') return 'Cromos Especiales (FWC)';
+  if (grupo === 'Coca-Cola') return 'Extra: Coca-Cola (CC)';
+  const siglas = PAISES.filter(p => p.grupo === grupo).map(p => p.sigla).join('-');
+  return `Grupo ${grupo} (${siglas})`;
+};
+
+const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 /**
  * ==========================================
- * 3. CUSTOM HOOK (Estado y Nube Real)
+ * 3. CUSTOM HOOK (Estado y Nube)
  * ==========================================
  */
 function usePaniniState() {
@@ -115,14 +132,12 @@ function usePaniniState() {
       try {
         const [resInv, resFin] = await Promise.all([
           supabase.from('inventario').select('id, obtenido, cantidad_repetidas'),
-          supabase.from('finanzas').select('*').eq('id', 1).single() // Asumiendo fila única para el usuario (id:1)
+          supabase.from('finanzas').select('*').eq('id', 1).single()
         ]);
         
         const newInv = {};
         if (resInv.data) {
-          resInv.data.forEach(row => {
-            newInv[row.id] = { obtenido: row.obtenido, cantidadRepetidas: row.cantidad_repetidas };
-          });
+          resInv.data.forEach(row => { newInv[row.id] = { obtenido: row.obtenido, cantidadRepetidas: row.cantidad_repetidas }; });
         }
         setInventario(newInv);
 
@@ -131,9 +146,7 @@ function usePaniniState() {
         }
       } catch (error) {
         console.error("Error al conectar con Supabase:", error);
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     };
     fetchData();
   }, []);
@@ -141,7 +154,6 @@ function usePaniniState() {
   const hacerCommitNuevas = async (idsArray) => {
     const nuevoInv = { ...inventario };
     const rowsToUpsert = [];
-
     idsArray.forEach(id => {
       if (CATALOGO_MAP[id]) {
         const item = nuevoInv[id] || { obtenido: false, cantidadRepetidas: 0 };
@@ -149,7 +161,6 @@ function usePaniniState() {
         rowsToUpsert.push({ id, obtenido: true, cantidad_repetidas: item.cantidadRepetidas });
       }
     });
-
     setInventario(nuevoInv);
     if (rowsToUpsert.length > 0) await supabase.from('inventario').upsert(rowsToUpsert);
   };
@@ -159,7 +170,6 @@ function usePaniniState() {
     const item = nuevoInv[id] || { obtenido: false, cantidadRepetidas: 0 };
     const nuevaCantidad = Math.max(0, item.cantidadRepetidas + delta);
     nuevoInv[id] = { ...item, cantidadRepetidas: nuevaCantidad };
-    
     setInventario(nuevoInv);
     await supabase.from('inventario').upsert([{ id, obtenido: nuevoInv[id].obtenido, cantidad_repetidas: nuevaCantidad }]);
   };
@@ -208,18 +218,33 @@ function usePaniniState() {
  */
 function useAlbumStats(inventario) {
   return useMemo(() => {
-    let totales = { obtenidos: 0, faltantes: 980, porcentaje: 0 };
+    let totales = { obtenidos: 0, faltantes: 980, porcentaje: 0 }; // CocaCola no suma aquí
     let grupos = {};
     let paises = {};
 
     CATALOGO_ARRAY.forEach(s => {
       const obtenido = inventario[s.id]?.obtenido ? 1 : 0;
-      totales.obtenidos += obtenido;
+      
+      // Totales (Ignoramos Coca-Cola para que base sea 980)
+      if (s.grupo !== 'Coca-Cola') {
+        totales.obtenidos += obtenido;
+      }
 
-      if (!grupos[s.grupo]) grupos[s.grupo] = { obtenidos: 0, total: s.grupo === 'Especial' ? 20 : 80 };
+      // Por Grupos
+      if (!grupos[s.grupo]) {
+        let total = 80;
+        if (s.grupo === 'Especial') total = 20;
+        if (s.grupo === 'Coca-Cola') total = 14;
+        grupos[s.grupo] = { obtenidos: 0, total };
+      }
       grupos[s.grupo].obtenidos += obtenido;
 
-      if (!paises[s.sigla]) paises[s.sigla] = { obtenidos: 0, total: 20 };
+      // Por Países
+      if (!paises[s.sigla]) {
+        let total = 20;
+        if (s.sigla === 'CC') total = 14;
+        paises[s.sigla] = { obtenidos: 0, total };
+      }
       paises[s.sigla].obtenidos += obtenido;
     });
 
@@ -249,6 +274,7 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   const stats = useAlbumStats(inventario);
   const [pendingAdds, setPendingAdds] = useState(new Set());
   const [openGroups, setOpenGroups] = useState({ 'Especial': true }); 
+  const [busqueda, setBusqueda] = useState('');
   const pressTimer = useRef(null);
 
   const togglePending = (id) => {
@@ -261,42 +287,49 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
     });
   };
 
-  // Lógica Long Press (800ms) para Deshacer
   const handlePressStart = (id, obtenido) => {
     if (!obtenido) return;
     pressTimer.current = setTimeout(() => {
-      if (window.confirm(`¿Estás seguro de que deseas remover el cromo ${id.replace('-',' ')} de tu álbum?`)) {
+      if (window.confirm(`¿Estás seguro de remover el cromo ${id.replace('-',' ')} de tu álbum?`)) {
         removerCromoObtenido(id);
       }
     }, 800);
   };
 
   const handlePressEnd = () => {
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
+    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
   };
 
-  const handleConfirm = () => {
-    hacerCommitNuevas(Array.from(pendingAdds));
-    setPendingAdds(new Set());
-  };
-
+  const handleConfirm = () => { hacerCommitNuevas(Array.from(pendingAdds)); setPendingAdds(new Set()); };
   const toggleAccordion = (grupo) => setOpenGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
 
   return (
     <div className="pb-28">
-      <div className="sticky top-0 z-30 bg-gradient-to-b from-[#8a1538] to-[#600e26] text-white p-4 shadow-lg">
-        <h1 className="text-xl font-black flex items-center gap-2 mb-3"><BookOpen size={24}/> Mi Álbum</h1>
-        <div className="flex justify-between items-center bg-black/20 rounded-xl p-3 backdrop-blur-sm">
-          <div>
-            <p className="text-xs text-amber-200/80 font-semibold mb-1">PROGRESO GLOBAL</p>
-            <p className="text-2xl font-black">{stats.totales.porcentaje}%</p>
+      <div className="sticky top-0 z-30 bg-gradient-to-b from-[#8a1538] to-[#600e26] text-white shadow-lg">
+        <div className="p-4 pb-2">
+          <h1 className="text-xl font-black flex items-center gap-2 mb-3"><BookOpen size={24}/> Mi Álbum</h1>
+          <div className="flex justify-between items-center bg-black/20 rounded-xl p-3 backdrop-blur-sm">
+            <div>
+              <p className="text-xs text-amber-200/80 font-semibold mb-1">PROGRESO GLOBAL (Base 980)</p>
+              <p className="text-2xl font-black">{stats.totales.porcentaje}%</p>
+            </div>
+            <div className="text-right flex gap-4">
+              <div><p className="text-[10px] opacity-70">Obtenidos</p><p className="font-bold">{stats.totales.obtenidos}</p></div>
+              <div><p className="text-[10px] opacity-70">Faltantes</p><p className="font-bold text-red-300">{stats.totales.faltantes}</p></div>
+            </div>
           </div>
-          <div className="text-right flex gap-4">
-            <div><p className="text-[10px] opacity-70">Obtenidos</p><p className="font-bold">{stats.totales.obtenidos}</p></div>
-            <div><p className="text-[10px] opacity-70">Faltantes</p><p className="font-bold text-red-300">{stats.totales.faltantes}</p></div>
+        </div>
+        {/* BUSCADOR INTEGRADO */}
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-2.5 text-gray-500" />
+            <input 
+              type="text" 
+              placeholder="Buscar país o sigla (ej. MEX, Argentina)..." 
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-white/95 text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-inner"
+            />
           </div>
         </div>
       </div>
@@ -304,8 +337,16 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
       <div className="p-3 space-y-3">
         {GRUPOS.map(grupo => {
           const gStats = stats.grupos[grupo];
-          const isOpen = openGroups[grupo];
-          const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
+          
+          // Lógica de Buscador
+          const paisesGrupoOrig = PAISES.filter(p => p.grupo === grupo);
+          const paisesGrupo = busqueda 
+            ? paisesGrupoOrig.filter(p => normalizeText(p.nombre).includes(normalizeText(busqueda)) || normalizeText(p.sigla).includes(normalizeText(busqueda)))
+            : paisesGrupoOrig;
+
+          if (busqueda && paisesGrupo.length === 0) return null;
+
+          const isOpen = busqueda ? true : openGroups[grupo];
 
           return (
             <div key={grupo} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -317,14 +358,13 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
                   <span className={`p-1 rounded-full ${isOpen ? 'bg-[#8a1538]/10 text-[#8a1538]' : 'bg-gray-100 text-gray-500'}`}>
                     {isOpen ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
                   </span>
-                  <h2 className="font-bold text-gray-800 text-lg">
-                    {grupo === 'Especial' ? 'Cromos Especiales' : `Grupo ${grupo}`}
+                  <h2 className="font-bold text-gray-800 text-sm md:text-base text-left leading-tight">
+                    {getGrupoTitulo(grupo)}
                   </h2>
                 </div>
-                <div className="text-right">
-                  {/* PORCENTAJES GRUPO */}
-                  <span className="text-sm font-black text-gray-700">
-                    {gStats.obtenidos} <span className="text-gray-400 font-medium">/ {gStats.total} ({gStats.porcentaje}%)</span>
+                <div className="text-right min-w-[70px]">
+                  <span className="text-xs font-black text-gray-700">
+                    {gStats.obtenidos} <span className="text-gray-400 font-medium">/ {gStats.total}</span>
                   </span>
                   <div className="w-full bg-gray-200 h-1.5 rounded-full mt-1"><div className="bg-emerald-500 h-1.5 rounded-full transition-all" style={{width: `${gStats.porcentaje}%`}}></div></div>
                 </div>
@@ -343,9 +383,8 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
                             <span className="w-1.5 h-4 bg-[#8a1538] rounded-full inline-block"></span>
                             {pais.nombre} <span className="text-xs font-normal text-gray-400">({pais.sigla})</span>
                           </h3>
-                          {/* PORCENTAJES SELECCIÓN */}
                           <span className={`text-xs font-bold px-2 py-1 rounded-full ${pStats.porcentaje == 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
-                            {pStats.obtenidos} / 20 ({pStats.porcentaje}%)
+                            {pStats.obtenidos} / {pStats.total} ({pStats.porcentaje}%)
                           </span>
                         </div>
                         
@@ -363,12 +402,12 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
                                 onMouseDown={() => handlePressStart(sticker.id, obtenido)}
                                 onMouseUp={handlePressEnd}
                                 onMouseLeave={handlePressEnd}
-                                onContextMenu={(e) => { if (obtenido) e.preventDefault(); }} // Previene menú nativo
+                                onContextMenu={(e) => { if (obtenido) e.preventDefault(); }}
                                 className={`relative flex items-center justify-center h-[60px] transition-all cursor-pointer select-none
-                                  ${obtenido ? 'bg-amber-50/70' : isPending ? 'bg-blue-50 border-2 border-blue-500 z-10' : 'bg-white opacity-45 grayscale hover:opacity-70'}
+                                  ${obtenido ? 'bg-emerald-100/90 border border-emerald-200 z-0 shadow-inner' : isPending ? 'bg-blue-50 border-2 border-blue-500 z-10' : 'bg-white opacity-45 grayscale hover:opacity-70'}
                                 `}
                               >
-                                <span className={`text-[12px] font-black tracking-tight ${obtenido ? 'text-gray-900' : isPending ? 'text-blue-700' : 'text-gray-500'}`}>
+                                <span className={`text-[12px] font-black tracking-tight ${obtenido ? 'text-emerald-900' : isPending ? 'text-blue-700' : 'text-gray-500'}`}>
                                   {sticker.id.replace('-', ' ')}
                                 </span>
                               </div>
@@ -399,6 +438,7 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
 // ================== TAB 2: MIS REPETIDAS ==================
 const TabRepetidas = ({ inventario, modificarRepetida }) => {
   const [openGroups, setOpenGroups] = useState({ 'Especial': true }); 
+  const [busqueda, setBusqueda] = useState('');
   
   const toggleAccordion = (grupo) => setOpenGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
 
@@ -409,35 +449,31 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
   const handleDownloadRepetidas = () => {
     let contenido = "⚽ MIS REPETIDAS - PANINI MUNDIAL 2026 ⚽\n";
     contenido += `Fecha de exportación: ${new Date().toLocaleDateString()}\n`;
-    contenido += `Total de cromos disponibles para intercambio: ${totalRepetidas}\n\n`;
+    contenido += `Total de cromos para intercambio: ${totalRepetidas}\n\n`;
 
     GRUPOS.forEach(grupo => {
       const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
       let grupoTieneRepetidas = false;
-      let textoGrupo = `==========================\nGRUPO ${grupo}\n==========================\n`;
+      let textoGrupo = `==========================\n${getGrupoTitulo(grupo).toUpperCase()}\n==========================\n`;
 
       paisesGrupo.forEach(pais => {
         const repetidasPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && (inventario[s.id]?.cantidadRepetidas || 0) > 0);
         if (repetidasPais.length > 0) {
           grupoTieneRepetidas = true;
           textoGrupo += `\n* ${pais.nombre} (${pais.sigla}):\n`;
-          // Formatear los IDs para que se vean bien (ej: ARG 10 (x2))
           const listaCromos = repetidasPais.map(s => `${s.id.replace('-', ' ')} (x${inventario[s.id].cantidadRepetidas})`);
           textoGrupo += listaCromos.join(', ') + '\n';
         }
       });
 
-      if (grupoTieneRepetidas) {
-        contenido += textoGrupo + '\n';
-      }
+      if (grupoTieneRepetidas) contenido += textoGrupo + '\n';
     });
 
-    // Crear un Blob (archivo virtual) y forzar la descarga en el navegador
     const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Mis_Repetidas_Panini_2026_${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `Mis_Repetidas_Panini2026_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -446,31 +482,49 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
 
   return (
     <div className="pb-28">
-      <div className="sticky top-0 z-30 bg-gradient-to-b from-amber-500 to-amber-600 text-white p-4 shadow-lg flex justify-between items-center">
-        <h1 className="text-xl font-black flex items-center gap-2"><Layers size={24}/> Mis Repetidas</h1>
-        <div className="flex items-center gap-2">
-          <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
-            Total: <span className="text-lg">{totalRepetidas}</span>
+      <div className="sticky top-0 z-30 bg-gradient-to-b from-amber-500 to-amber-600 text-white shadow-lg">
+        <div className="p-4 pb-2 flex justify-between items-center">
+          <h1 className="text-xl font-black flex items-center gap-2"><Layers size={24}/> Mis Repetidas</h1>
+          <div className="flex items-center gap-2">
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+              Total: <span className="text-lg">{totalRepetidas}</span>
+            </div>
+            <button 
+              onClick={handleDownloadRepetidas} disabled={totalRepetidas === 0}
+              className="bg-white/20 p-2 rounded-full hover:bg-white/30 disabled:opacity-50 transition-colors"
+            >
+              <Download size={20} />
+            </button>
           </div>
-          <button 
-            onClick={handleDownloadRepetidas}
-            disabled={totalRepetidas === 0}
-            className="bg-white/20 p-2 rounded-full hover:bg-white/30 disabled:opacity-50 transition-colors"
-            title="Descargar lista de repetidas"
-          >
-            <Download size={20} />
-          </button>
+        </div>
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-2.5 text-amber-200" />
+            <input 
+              type="text" 
+              placeholder="Buscar país (ej. Brasil, GER)..." 
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-amber-700/30 text-white placeholder-amber-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white shadow-inner"
+            />
+          </div>
         </div>
       </div>
       
-      <p className="px-4 py-3 text-xs text-gray-500 bg-white border-b shadow-sm">
-        Toca cualquier cromo para sumarlo a tu pila de repetidas. Usa los controles para restar.
+      <p className="px-4 py-2 text-[11px] text-gray-500 bg-white border-b shadow-sm uppercase font-bold text-center tracking-wider">
+        Toca el cromo para sumarlo a repetidas
       </p>
 
       <div className="p-3 space-y-3">
         {GRUPOS.map(grupo => {
-          const isOpen = openGroups[grupo];
-          const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
+          const paisesGrupoOrig = PAISES.filter(p => p.grupo === grupo);
+          const paisesGrupo = busqueda 
+            ? paisesGrupoOrig.filter(p => normalizeText(p.nombre).includes(normalizeText(busqueda)) || normalizeText(p.sigla).includes(normalizeText(busqueda)))
+            : paisesGrupoOrig;
+
+          if (busqueda && paisesGrupo.length === 0) return null;
+
+          const isOpen = busqueda ? true : openGroups[grupo];
           const repetidasGrupo = CATALOGO_ARRAY.filter(s => s.grupo === grupo).reduce((acc, s) => acc + (inventario[s.id]?.cantidadRepetidas || 0), 0);
 
           return (
@@ -483,12 +537,12 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
                   <span className={`p-1 rounded-full ${isOpen ? 'bg-amber-500/10 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
                     {isOpen ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
                   </span>
-                  <h2 className="font-bold text-gray-800 text-lg">
-                    {grupo === 'Especial' ? 'Cromos Especiales' : `Grupo ${grupo}`}
+                  <h2 className="font-bold text-gray-800 text-sm md:text-base text-left leading-tight">
+                    {getGrupoTitulo(grupo)}
                   </h2>
                 </div>
                 {repetidasGrupo > 0 && (
-                  <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">
+                  <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap ml-2">
                     {repetidasGrupo} disp.
                   </span>
                 )}
@@ -553,6 +607,7 @@ const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo }) => {
   const [step, setStep] = useState(1);
   const [doyCantidades, setDoyCantidades] = useState({});
   const [reciboIds, setReciboIds] = useState(new Set());
+  const [busquedaRecibo, setBusquedaRecibo] = useState('');
 
   const repetidas = useMemo(() => CATALOGO_ARRAY.filter(s => (inventario[s.id]?.cantidadRepetidas || 0) > 0), [inventario]);
   const faltantes = useMemo(() => CATALOGO_ARRAY.filter(s => !inventario[s.id]?.obtenido), [inventario]);
@@ -562,7 +617,7 @@ const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo }) => {
 
   const procesar = () => {
     ejecutarIntercambioMasivo(doyCantidades, Array.from(reciboIds));
-    setDoyCantidades({}); setReciboIds(new Set()); setStep(1);
+    setDoyCantidades({}); setReciboIds(new Set()); setStep(1); setBusquedaRecibo('');
     alert("¡Intercambio registrado con éxito!");
   };
 
@@ -580,6 +635,7 @@ const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo }) => {
           <div className="animate-in fade-in space-y-4">
             <h3 className="font-bold text-lg">Tus Repetidas (Vas a dar)</h3>
             <div className="grid grid-cols-3 gap-2">
+              {repetidas.length === 0 && <p className="col-span-3 text-center text-gray-500 py-8">No tienes repetidas disponibles.</p>}
               {repetidas.map(s => {
                 const max = inventario[s.id].cantidadRepetidas;
                 const selec = doyCantidades[s.id] || 0;
@@ -598,10 +654,20 @@ const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo }) => {
         {step === 2 && (
           <div className="animate-in fade-in space-y-4">
             <h3 className="font-bold text-lg">Tus Faltantes (Vas a recibir)</h3>
-            <div className="bg-white p-2 rounded-xl shadow-sm border h-[55vh] overflow-y-auto">
+            
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+              <input type="text" placeholder="Buscar país..." value={busquedaRecibo} onChange={(e) => setBusquedaRecibo(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+
+            <div className="bg-white p-2 rounded-xl shadow-sm border h-[45vh] overflow-y-auto">
               {PAISES.map(pais => {
+                if (busquedaRecibo && !normalizeText(pais.nombre).includes(normalizeText(busquedaRecibo)) && !normalizeText(pais.sigla).includes(normalizeText(busquedaRecibo))) return null;
+
                 const faltantesPais = faltantes.filter(s => s.sigla === pais.sigla);
                 if(faltantesPais.length === 0) return null;
+                
                 return (
                   <div key={pais.sigla} className="mb-4">
                     <h4 className="font-bold text-gray-600 bg-gray-50 p-2 text-sm">{pais.nombre}</h4>
