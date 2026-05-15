@@ -2,17 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   BookOpen, RefreshCw, DollarSign, Plus, Minus, Search, 
   CheckCircle2, ArrowRight, Zap, X, History, Layers, 
-  Save, ChevronDown, ChevronUp, ChevronRight, Download
+  Save, ChevronDown, ChevronUp, ChevronRight, Download, ListChecks
 } from 'lucide-react';
 
 /**
  * ==========================================
  * 1. CONFIGURACIÓN DE BASE DE DATOS (MOCK CLOUD-READY)
  * ==========================================
- * Mantiene EXACTAMENTE la misma estructura de funciones async/await.
- * PARA PRODUCCIÓN REAL, descomenta:
- * // import { createClient } from '@supabase/supabase-js';
- * // const supabase = createClient('TU_URL', 'TU_KEY');
  */
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -81,18 +77,15 @@ const generarCatalogoOficial = () => {
   const catalogo = [];
   PAISES.forEach(pais => {
     if (pais.sigla === 'FWC') {
-      // Especiales: 00 y FWC 1 al FWC 19
       catalogo.push({ id: '00', sigla: 'FWC', numero: '00', tipo: 'especial_fwc', grupo: pais.grupo });
       for (let i = 1; i <= 19; i++) {
         catalogo.push({ id: `FWC-${i}`, sigla: 'FWC', numero: i.toString(), tipo: 'especial_fwc', grupo: pais.grupo });
       }
     } else if (pais.sigla === 'CC') {
-      // Coca-Cola Extras: CC 1 al CC 14
       for (let i = 1; i <= 14; i++) {
         catalogo.push({ id: `CC-${i}`, sigla: 'CC', numero: i.toString(), tipo: 'coca_cola', grupo: pais.grupo });
       }
     } else {
-      // Equipos Normales: 1 al 20
       for (let i = 1; i <= 20; i++) {
         let tipo = 'retrato';
         if (i === 1) tipo = 'escudo_especial';
@@ -107,7 +100,6 @@ const generarCatalogoOficial = () => {
 const CATALOGO_ARRAY = generarCatalogoOficial();
 const CATALOGO_MAP = CATALOGO_ARRAY.reduce((acc, s) => { acc[s.id] = s; return acc; }, {});
 
-// Helper para títulos de grupo
 const getGrupoTitulo = (grupo) => {
   if (grupo === 'Especial') return 'Cromos Especiales (FWC)';
   if (grupo === 'Coca-Cola') return 'Extra: Coca-Cola (CC)';
@@ -211,26 +203,17 @@ function usePaniniState() {
   };
 }
 
-/**
- * ==========================================
- * 4. DASHBOARD ENGINE (Cálculo Granular)
- * ==========================================
- */
 function useAlbumStats(inventario) {
   return useMemo(() => {
-    let totales = { obtenidos: 0, faltantes: 980, porcentaje: 0 }; // CocaCola no suma aquí
+    let totales = { obtenidos: 0, faltantes: 980, porcentaje: 0 };
     let grupos = {};
     let paises = {};
 
     CATALOGO_ARRAY.forEach(s => {
       const obtenido = inventario[s.id]?.obtenido ? 1 : 0;
       
-      // Totales (Ignoramos Coca-Cola para que base sea 980)
-      if (s.grupo !== 'Coca-Cola') {
-        totales.obtenidos += obtenido;
-      }
+      if (s.grupo !== 'Coca-Cola') totales.obtenidos += obtenido;
 
-      // Por Grupos
       if (!grupos[s.grupo]) {
         let total = 80;
         if (s.grupo === 'Especial') total = 20;
@@ -239,7 +222,6 @@ function useAlbumStats(inventario) {
       }
       grupos[s.grupo].obtenidos += obtenido;
 
-      // Por Países
       if (!paises[s.sigla]) {
         let total = 20;
         if (s.sigla === 'CC') total = 14;
@@ -303,11 +285,50 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   const handleConfirm = () => { hacerCommitNuevas(Array.from(pendingAdds)); setPendingAdds(new Set()); };
   const toggleAccordion = (grupo) => setOpenGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
 
+  const handleDownloadFaltantes = () => {
+    let contenido = "⚽ MIS FALTANTES - PANINI MUNDIAL 2026 ⚽\n";
+    contenido += `Fecha de exportación: ${new Date().toLocaleDateString()}\n`;
+    contenido += `Total de cromos faltantes: ${stats.totales.faltantes}\n\n`;
+
+    GRUPOS.forEach(grupo => {
+      const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
+      let grupoTieneFaltantes = false;
+      let textoGrupo = `==========================\n${getGrupoTitulo(grupo).toUpperCase()}\n==========================\n`;
+
+      paisesGrupo.forEach(pais => {
+        const faltantesPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && !inventario[s.id]?.obtenido);
+        if (faltantesPais.length > 0) {
+          grupoTieneFaltantes = true;
+          textoGrupo += `\n* ${pais.nombre} (${pais.sigla}):\n`;
+          const listaCromos = faltantesPais.map(s => s.id.replace('-', ' '));
+          textoGrupo += listaCromos.join(', ') + '\n';
+        }
+      });
+
+      if (grupoTieneFaltantes) contenido += textoGrupo + '\n';
+    });
+
+    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Mis_Faltantes_Panini2026_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="pb-28">
       <div className="sticky top-0 z-30 bg-gradient-to-b from-[#8a1538] to-[#600e26] text-white shadow-lg">
-        <div className="p-4 pb-2">
-          <h1 className="text-xl font-black flex items-center gap-2 mb-3"><BookOpen size={24}/> Mi Álbum</h1>
+        <div className="p-4 pb-2 flex justify-between items-center">
+          <h1 className="text-xl font-black flex items-center gap-2"><BookOpen size={24}/> Mi Álbum</h1>
+          <button onClick={handleDownloadFaltantes} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors" title="Descargar lista de faltantes">
+             <Download size={20} />
+          </button>
+        </div>
+        <div className="px-4 pb-2">
           <div className="flex justify-between items-center bg-black/20 rounded-xl p-3 backdrop-blur-sm">
             <div>
               <p className="text-xs text-amber-200/80 font-semibold mb-1">PROGRESO GLOBAL (Base 980)</p>
@@ -319,13 +340,12 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
             </div>
           </div>
         </div>
-        {/* BUSCADOR INTEGRADO */}
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 mt-2">
           <div className="relative">
             <Search size={18} className="absolute left-3 top-2.5 text-gray-500" />
             <input 
               type="text" 
-              placeholder="Buscar país o sigla (ej. MEX, Argentina)..." 
+              placeholder="Buscar país o sigla (ej. MEX)..." 
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-full bg-white/95 text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-inner"
@@ -338,14 +358,12 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
         {GRUPOS.map(grupo => {
           const gStats = stats.grupos[grupo];
           
-          // Lógica de Buscador
           const paisesGrupoOrig = PAISES.filter(p => p.grupo === grupo);
           const paisesGrupo = busqueda 
             ? paisesGrupoOrig.filter(p => normalizeText(p.nombre).includes(normalizeText(busqueda)) || normalizeText(p.sigla).includes(normalizeText(busqueda)))
             : paisesGrupoOrig;
 
           if (busqueda && paisesGrupo.length === 0) return null;
-
           const isOpen = busqueda ? true : openGroups[grupo];
 
           return (
@@ -435,7 +453,99 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   );
 };
 
-// ================== TAB 2: MIS REPETIDAS ==================
+// ================== TAB NUEVA: FALTANTES EXPRESS ==================
+const TabFaltantes = ({ inventario, hacerCommitNuevas }) => {
+  const [pendingAdds, setPendingAdds] = useState(new Set());
+  const [busqueda, setBusqueda] = useState('');
+
+  const faltantes = useMemo(() => CATALOGO_ARRAY.filter(s => !inventario[s.id]?.obtenido && s.grupo !== 'Coca-Cola'), [inventario]);
+
+  const togglePending = (id) => {
+    setPendingAdds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleConfirm = () => { hacerCommitNuevas(Array.from(pendingAdds)); setPendingAdds(new Set()); };
+
+  return (
+    <div className="pb-28 bg-gray-50 min-h-screen">
+      <div className="sticky top-0 z-30 bg-gradient-to-b from-blue-700 to-blue-900 text-white shadow-lg">
+        <div className="p-4 pb-2 flex justify-between items-center">
+          <h1 className="text-xl font-black flex items-center gap-2"><ListChecks size={24}/> Faltantes Express</h1>
+          <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+            Faltan: <span className="text-lg">{faltantes.length}</span>
+          </div>
+        </div>
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-2.5 text-blue-200" />
+            <input 
+              type="text" 
+              placeholder="Buscar país..." 
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-blue-800/50 text-white placeholder-blue-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white shadow-inner"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <p className="px-4 py-2 text-[11px] text-gray-500 bg-white border-b shadow-sm uppercase font-bold text-center tracking-wider mb-2">
+        Toca las láminas que conseguiste para guardarlas
+      </p>
+
+      <div className="p-3">
+        {PAISES.map(pais => {
+          if (pais.grupo === 'Coca-Cola') return null; // Excluimos Coca-Cola de la lista estricta
+          if (busqueda && !normalizeText(pais.nombre).includes(normalizeText(busqueda)) && !normalizeText(pais.sigla).includes(normalizeText(busqueda))) return null;
+          
+          const faltantesPais = faltantes.filter(s => s.sigla === pais.sigla);
+          if (faltantesPais.length === 0) return null;
+
+          return (
+            <div key={pais.sigla} className="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <h4 className="font-bold text-gray-700 bg-gray-50 p-3 border-b border-gray-100 flex justify-between items-center">
+                <span className="flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-blue-600 rounded-full inline-block"></span>
+                  {pais.nombre} <span className="text-xs font-normal text-gray-400">({pais.sigla})</span>
+                </span>
+                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-bold">{faltantesPais.length}</span>
+              </h4>
+              <div className="flex flex-wrap gap-2 p-3">
+                {faltantesPais.map(s => {
+                  const isPending = pendingAdds.has(s.id);
+                  return (
+                    <button 
+                      key={s.id} 
+                      onClick={() => togglePending(s.id)}
+                      className={`px-3 py-2 rounded-lg font-bold text-sm border transition-all ${isPending ? 'bg-blue-600 text-white border-blue-700 shadow-md scale-105' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                    >
+                      {s.id.replace('-', ' ')}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {pendingAdds.size > 0 && (
+        <div className="fixed bottom-24 left-0 w-full px-4 z-50 animate-in slide-in-from-bottom-10">
+          <button onClick={handleConfirm} className="w-full bg-blue-600 text-white font-bold text-lg py-4 rounded-2xl shadow-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform">
+            <Save size={24}/> Marcar {pendingAdds.size} como Obtenidos
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+// ================== TAB 3: MIS REPETIDAS ==================
 const TabRepetidas = ({ inventario, modificarRepetida }) => {
   const [openGroups, setOpenGroups] = useState({ 'Especial': true }); 
   const [busqueda, setBusqueda] = useState('');
@@ -602,7 +712,7 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
   );
 };
 
-// ================== TAB 3: MOTOR INTERCAMBIOS ==================
+// ================== TAB 4: MOTOR INTERCAMBIOS ==================
 const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo }) => {
   const [step, setStep] = useState(1);
   const [doyCantidades, setDoyCantidades] = useState({});
@@ -718,22 +828,28 @@ export default function App() {
     <div className="min-h-screen bg-gray-100 font-sans text-gray-900 mx-auto max-w-[480px] shadow-2xl relative overflow-hidden flex flex-col">
       <main className="flex-1 overflow-y-auto hide-scrollbar">
         {tabActivo === 'album' && <TabAlbum inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} removerCromoObtenido={state.removerCromoObtenido} />}
+        {tabActivo === 'faltantes' && <TabFaltantes inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} />}
         {tabActivo === 'repetidas' && <TabRepetidas inventario={state.inventario} modificarRepetida={state.modificarRepetida} />}
         {tabActivo === 'intercambios' && <TabIntercambios inventario={state.inventario} ejecutarIntercambioMasivo={state.ejecutarIntercambioMasivo} />}
       </main>
 
-      <nav className="absolute bottom-0 w-full bg-white border-t border-gray-200 pb-safe pt-2 px-2 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-40 h-[75px]">
+      {/* REAJUSTE PARA 4 PESTAÑAS (Faltantes incluida) */}
+      <nav className="absolute bottom-0 w-full bg-white border-t border-gray-200 pb-safe pt-2 px-1 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-40 h-[75px]">
         <button onClick={() => setTabActivo('album')} className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${tabActivo === 'album' ? 'text-[#8a1538]' : 'text-gray-400 hover:text-gray-600'}`}>
-          <BookOpen size={24} className={tabActivo === 'album' ? 'fill-[#8a1538]/20' : ''}/>
-          <span className="text-[10px] font-bold mt-1">Mi Álbum</span>
+          <BookOpen size={22} className={tabActivo === 'album' ? 'fill-[#8a1538]/20' : ''}/>
+          <span className="text-[10px] font-bold mt-1">Álbum</span>
+        </button>
+        <button onClick={() => setTabActivo('faltantes')} className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${tabActivo === 'faltantes' ? 'text-blue-700' : 'text-gray-400 hover:text-gray-600'}`}>
+          <ListChecks size={22} className={tabActivo === 'faltantes' ? 'text-blue-700' : ''}/>
+          <span className="text-[10px] font-bold mt-1">Faltantes</span>
         </button>
         <button onClick={() => setTabActivo('repetidas')} className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${tabActivo === 'repetidas' ? 'text-amber-500' : 'text-gray-400 hover:text-gray-600'}`}>
-          <Layers size={24} className={tabActivo === 'repetidas' ? 'fill-amber-500/20' : ''}/>
+          <Layers size={22} className={tabActivo === 'repetidas' ? 'fill-amber-500/20' : ''}/>
           <span className="text-[10px] font-bold mt-1">Repetidas</span>
         </button>
         <button onClick={() => setTabActivo('intercambios')} className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${tabActivo === 'intercambios' ? 'text-emerald-600' : 'text-gray-400 hover:text-gray-600'}`}>
-          <RefreshCw size={24} />
-          <span className="text-[10px] font-bold mt-1">Intercambio</span>
+          <RefreshCw size={22} />
+          <span className="text-[10px] font-bold mt-1">Cambios</span>
         </button>
       </nav>
     </div>
