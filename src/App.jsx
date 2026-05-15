@@ -73,6 +73,22 @@ const PAISES = [
   { sigla: 'CC', nombre: 'Coca-Cola (Extras)', grupo: 'Coca-Cola' }
 ];
 
+const EMOJIS = {
+  'FWC': '📜', 'MEX': '🇲🇽', 'RSA': '🇿🇦', 'KOR': '🇰🇷', 'CZE': '🇨🇿',
+  'CAN': '🇨🇦', 'BIH': '🇧🇦', 'QAT': '🇶🇦', 'SUI': '🇨🇭',
+  'BRA': '🇧🇷', 'MAR': '🇲🇦', 'HAI': '🇭🇹', 'SCO': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'USA': '🇺🇸', 'PAR': '🇵🇾', 'AUS': '🇦🇺', 'TUR': '🇹🇷',
+  'GER': '🇩🇪', 'CUW': '🇨🇼', 'CIV': '🇨🇮', 'ECU': '🇪🇨',
+  'NED': '🇳🇱', 'JPN': '🇯🇵', 'SWE': '🇸🇪', 'TUN': '🇹🇳',
+  'BEL': '🇧🇪', 'EGY': '🇪🇬', 'IRN': '🇮🇷', 'NZL': '🇳🇿',
+  'ESP': '🇪🇸', 'CPV': '🇨🇻', 'KSA': '🇸🇦', 'URU': '🇺🇾',
+  'FRA': '🇫🇷', 'SEN': '🇸🇳', 'IRQ': '🇮🇶', 'NOR': '🇳🇴',
+  'ARG': '🇦🇷', 'ALG': '🇩🇿', 'AUT': '🇦🇹', 'JOR': '🇯🇴',
+  'POR': '🇵🇹', 'COD': '🇨🇩', 'UZB': '🇺🇿', 'COL': '🇨🇴',
+  'ENG': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'CRO': '🇭🇷', 'GHA': '🇬🇭', 'PAN': '🇵🇦',
+  'CC': '🥤'
+};
+
 const generarCatalogoOficial = () => {
   const catalogo = [];
   PAISES.forEach(pais => {
@@ -109,6 +125,34 @@ const getGrupoTitulo = (grupo) => {
 
 const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
+<<<<<<< HEAD
+=======
+// --- ALGORITMO DE COMPRESIÓN DE LISTAS ---
+// Agrupa números consecutivos en rangos (Ej: 1, 2, 3, 5 -> "1-3, 5")
+const condensarNumerosArray = (numsArr) => {
+  if (!numsArr || numsArr.length === 0) return '';
+  const nums = numsArr.sort((a, b) => a - b);
+  let rangos = [];
+  let inicio = nums[0];
+  let anterior = nums[0];
+
+  for (let i = 1; i <= nums.length; i++) {
+    if (nums[i] === anterior + 1) {
+      anterior = nums[i];
+    } else {
+      const strInicio = inicio === 0 ? '00' : inicio;
+      const strAnterior = anterior === 0 ? '00' : anterior;
+      rangos.push(inicio === anterior ? `${strInicio}` : `${strInicio}-${strAnterior}`);
+      if (i < nums.length) {
+        inicio = nums[i];
+        anterior = nums[i];
+      }
+    }
+  }
+  return rangos.join(', ');
+};
+
+>>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
 /**
  * ==========================================
  * 3. CUSTOM HOOK (Estado y Nube)
@@ -286,6 +330,7 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   const toggleAccordion = (grupo) => setOpenGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
 
   const handleShareFaltantes = async () => {
+<<<<<<< HEAD
     let contenido = "⚽ *MIS FALTANTES - PANINI 2026* ⚽\n";
     contenido += `📅 Fecha: ${new Date().toLocaleDateString()}\n`;
     contenido += `🔍 Me faltan: ${stats.totales.faltantes} cromos\n`;
@@ -308,6 +353,20 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
       if (grupoTieneFaltantes) contenido += textoGrupo;
     });
 
+=======
+    let contenido = "Figuritas App - Lista\nUsa Méx Can 26\n\nFaltantes\n";
+
+    PAISES.forEach(pais => {
+      const faltantesPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && !inventario[s.id]?.obtenido);
+      if (faltantesPais.length > 0 && pais.sigla !== 'CC') {
+        const nums = faltantesPais.map(s => s.numero === '00' ? '00' : parseInt(s.numero));
+        contenido += `${pais.sigla} ${EMOJIS[pais.sigla]}: ${nums.join(', ')}\n`;
+      }
+    });
+
+    contenido += "\nGestiona tu álbum desde el siguiente link:\nhttps://panini26.vercel.app/";
+
+>>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -317,8 +376,14 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
       } catch (e) { console.log("Compartir cancelado o falló", e); }
     } else {
       navigator.clipboard.writeText(contenido);
+<<<<<<< HEAD
       if (window.confirm("¡Lista copiada al portapapeles!\n¿Deseas abrir WhatsApp Web/App para enviarla?")) {
         window.open(`https://wa.me/?text=${encodeURIComponent(contenido)}`, '_blank');
+=======
+      if (window.confirm("¡Lista copiada al portapapeles!\n(Pégala directamente en el chat para evitar recortes)\n\n¿Deseas abrir WhatsApp Web para enviarla?")) {
+        const urlWA = contenido.length > 2000 ? 'https://web.whatsapp.com/' : `https://api.whatsapp.com/send?text=${encodeURIComponent(contenido)}`;
+        window.open(urlWA, '_blank');
+>>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
       }
     }
   };
@@ -561,6 +626,7 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
   }, [inventario]);
 
   const handleShareRepetidas = async () => {
+<<<<<<< HEAD
     let contenido = "⚽ *MIS REPETIDAS - PANINI 2026* ⚽\n";
     contenido += `📅 Fecha: ${new Date().toLocaleDateString()}\n`;
     contenido += `🔄 Disponibles para cambio: ${totalRepetidas}\n`;
@@ -583,6 +649,30 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
       if (grupoTieneRepetidas) contenido += textoGrupo;
     });
 
+=======
+    let contenido = "Figuritas App - Lista\nUsa Méx Can 26\n\nRepetidas\n";
+
+    PAISES.forEach(pais => {
+      const repetidasPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && (inventario[s.id]?.cantidadRepetidas || 0) > 0);
+      if (repetidasPais.length > 0) {
+        const parts = [];
+        repetidasPais.forEach(s => {
+          const num = s.numero === '00' ? '00' : parseInt(s.numero);
+          const cant = inventario[s.id].cantidadRepetidas;
+          if (cant > 1) {
+            parts.push(`${num} (x${cant})`);
+          } else {
+            parts.push(`${num}`);
+          }
+        });
+        
+        contenido += `${pais.sigla} ${EMOJIS[pais.sigla]}: ${parts.join(', ')}\n`;
+      }
+    });
+
+    contenido += "\nGestiona tu álbum desde el siguiente link:\nhttps://panini26.vercel.app/";
+
+>>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -592,8 +682,14 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
       } catch (e) { console.log("Compartir cancelado o falló", e); }
     } else {
       navigator.clipboard.writeText(contenido);
+<<<<<<< HEAD
       if (window.confirm("¡Lista copiada al portapapeles!\n¿Deseas abrir WhatsApp Web/App para enviarla?")) {
         window.open(`https://wa.me/?text=${encodeURIComponent(contenido)}`, '_blank');
+=======
+      if (window.confirm("¡Lista copiada al portapapeles!\n(Pégala directamente en el chat para evitar recortes)\n\n¿Deseas abrir WhatsApp Web para enviarla?")) {
+        const urlWA = contenido.length > 2000 ? 'https://web.whatsapp.com/' : `https://api.whatsapp.com/send?text=${encodeURIComponent(contenido)}`;
+        window.open(urlWA, '_blank');
+>>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
       }
     }
   };
