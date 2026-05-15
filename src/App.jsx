@@ -125,8 +125,6 @@ const getGrupoTitulo = (grupo) => {
 
 const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-<<<<<<< HEAD
-=======
 // --- ALGORITMO DE COMPRESIÓN DE LISTAS ---
 // Agrupa números consecutivos en rangos (Ej: 1, 2, 3, 5 -> "1-3, 5")
 const condensarNumerosArray = (numsArr) => {
@@ -152,7 +150,6 @@ const condensarNumerosArray = (numsArr) => {
   return rangos.join(', ');
 };
 
->>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
 /**
  * ==========================================
  * 3. CUSTOM HOOK (Estado y Nube)
@@ -330,30 +327,6 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   const toggleAccordion = (grupo) => setOpenGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
 
   const handleShareFaltantes = async () => {
-<<<<<<< HEAD
-    let contenido = "⚽ *MIS FALTANTES - PANINI 2026* ⚽\n";
-    contenido += `📅 Fecha: ${new Date().toLocaleDateString()}\n`;
-    contenido += `🔍 Me faltan: ${stats.totales.faltantes} cromos\n`;
-
-    GRUPOS.forEach(grupo => {
-      const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
-      let grupoTieneFaltantes = false;
-      let textoGrupo = `\n📍 *${getGrupoTitulo(grupo).toUpperCase()}*\n`;
-
-      paisesGrupo.forEach(pais => {
-        const faltantesPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && !inventario[s.id]?.obtenido);
-        if (faltantesPais.length > 0) {
-          grupoTieneFaltantes = true;
-          textoGrupo += `🔸 *${pais.nombre}* (${pais.sigla}):\n`;
-          const listaCromos = faltantesPais.map(s => s.id.replace('-', ' '));
-          textoGrupo += listaCromos.join(', ') + '\n';
-        }
-      });
-
-      if (grupoTieneFaltantes) contenido += textoGrupo;
-    });
-
-=======
     let contenido = "Figuritas App - Lista\nUsa Méx Can 26\n\nFaltantes\n";
 
     PAISES.forEach(pais => {
@@ -366,7 +339,6 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
 
     contenido += "\nGestiona tu álbum desde el siguiente link:\nhttps://panini26.vercel.app/";
 
->>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -376,14 +348,9 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
       } catch (e) { console.log("Compartir cancelado o falló", e); }
     } else {
       navigator.clipboard.writeText(contenido);
-<<<<<<< HEAD
-      if (window.confirm("¡Lista copiada al portapapeles!\n¿Deseas abrir WhatsApp Web/App para enviarla?")) {
-        window.open(`https://wa.me/?text=${encodeURIComponent(contenido)}`, '_blank');
-=======
       if (window.confirm("¡Lista copiada al portapapeles!\n(Pégala directamente en el chat para evitar recortes)\n\n¿Deseas abrir WhatsApp Web para enviarla?")) {
         const urlWA = contenido.length > 2000 ? 'https://web.whatsapp.com/' : `https://api.whatsapp.com/send?text=${encodeURIComponent(contenido)}`;
         window.open(urlWA, '_blank');
->>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
       }
     }
   };
@@ -626,30 +593,6 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
   }, [inventario]);
 
   const handleShareRepetidas = async () => {
-<<<<<<< HEAD
-    let contenido = "⚽ *MIS REPETIDAS - PANINI 2026* ⚽\n";
-    contenido += `📅 Fecha: ${new Date().toLocaleDateString()}\n`;
-    contenido += `🔄 Disponibles para cambio: ${totalRepetidas}\n`;
-
-    GRUPOS.forEach(grupo => {
-      const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
-      let grupoTieneRepetidas = false;
-      let textoGrupo = `\n📍 *${getGrupoTitulo(grupo).toUpperCase()}*\n`;
-
-      paisesGrupo.forEach(pais => {
-        const repetidasPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && (inventario[s.id]?.cantidadRepetidas || 0) > 0);
-        if (repetidasPais.length > 0) {
-          grupoTieneRepetidas = true;
-          textoGrupo += `🔸 *${pais.nombre}* (${pais.sigla}):\n`;
-          const listaCromos = repetidasPais.map(s => `${s.id.replace('-', ' ')} (x${inventario[s.id].cantidadRepetidas})`);
-          textoGrupo += listaCromos.join(', ') + '\n';
-        }
-      });
-
-      if (grupoTieneRepetidas) contenido += textoGrupo;
-    });
-
-=======
     let contenido = "Figuritas App - Lista\nUsa Méx Can 26\n\nRepetidas\n";
 
     PAISES.forEach(pais => {
@@ -672,7 +615,6 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
 
     contenido += "\nGestiona tu álbum desde el siguiente link:\nhttps://panini26.vercel.app/";
 
->>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -682,14 +624,9 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
       } catch (e) { console.log("Compartir cancelado o falló", e); }
     } else {
       navigator.clipboard.writeText(contenido);
-<<<<<<< HEAD
-      if (window.confirm("¡Lista copiada al portapapeles!\n¿Deseas abrir WhatsApp Web/App para enviarla?")) {
-        window.open(`https://wa.me/?text=${encodeURIComponent(contenido)}`, '_blank');
-=======
       if (window.confirm("¡Lista copiada al portapapeles!\n(Pégala directamente en el chat para evitar recortes)\n\n¿Deseas abrir WhatsApp Web para enviarla?")) {
         const urlWA = contenido.length > 2000 ? 'https://web.whatsapp.com/' : `https://api.whatsapp.com/send?text=${encodeURIComponent(contenido)}`;
         window.open(urlWA, '_blank');
->>>>>>> 0c66a0d (feat: Modulo de faltantes corregidos)
       }
     }
   };
