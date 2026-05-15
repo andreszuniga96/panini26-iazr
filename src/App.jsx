@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   BookOpen, RefreshCw, DollarSign, Plus, Minus, Search, 
   CheckCircle2, ArrowRight, Zap, X, History, Layers, 
-  Save, ChevronDown, ChevronUp, ChevronRight, Download, ListChecks
+  Save, ChevronDown, ChevronUp, ChevronRight, Share2, ListChecks
 } from 'lucide-react';
 
 /**
@@ -285,38 +285,42 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
   const handleConfirm = () => { hacerCommitNuevas(Array.from(pendingAdds)); setPendingAdds(new Set()); };
   const toggleAccordion = (grupo) => setOpenGroups(prev => ({ ...prev, [grupo]: !prev[grupo] }));
 
-  const handleDownloadFaltantes = () => {
-    let contenido = "⚽ MIS FALTANTES - PANINI MUNDIAL 2026 ⚽\n";
-    contenido += `Fecha de exportación: ${new Date().toLocaleDateString()}\n`;
-    contenido += `Total de cromos faltantes: ${stats.totales.faltantes}\n\n`;
+  const handleShareFaltantes = async () => {
+    let contenido = "⚽ *MIS FALTANTES - PANINI 2026* ⚽\n";
+    contenido += `📅 Fecha: ${new Date().toLocaleDateString()}\n`;
+    contenido += `🔍 Me faltan: ${stats.totales.faltantes} cromos\n`;
 
     GRUPOS.forEach(grupo => {
       const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
       let grupoTieneFaltantes = false;
-      let textoGrupo = `==========================\n${getGrupoTitulo(grupo).toUpperCase()}\n==========================\n`;
+      let textoGrupo = `\n📍 *${getGrupoTitulo(grupo).toUpperCase()}*\n`;
 
       paisesGrupo.forEach(pais => {
         const faltantesPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && !inventario[s.id]?.obtenido);
         if (faltantesPais.length > 0) {
           grupoTieneFaltantes = true;
-          textoGrupo += `\n* ${pais.nombre} (${pais.sigla}):\n`;
+          textoGrupo += `🔸 *${pais.nombre}* (${pais.sigla}):\n`;
           const listaCromos = faltantesPais.map(s => s.id.replace('-', ' '));
           textoGrupo += listaCromos.join(', ') + '\n';
         }
       });
 
-      if (grupoTieneFaltantes) contenido += textoGrupo + '\n';
+      if (grupoTieneFaltantes) contenido += textoGrupo;
     });
 
-    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Mis_Faltantes_Panini2026_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Mis Faltantes Panini 2026',
+          text: contenido,
+        });
+      } catch (e) { console.log("Compartir cancelado o falló", e); }
+    } else {
+      navigator.clipboard.writeText(contenido);
+      if (window.confirm("¡Lista copiada al portapapeles!\n¿Deseas abrir WhatsApp Web/App para enviarla?")) {
+        window.open(`https://wa.me/?text=${encodeURIComponent(contenido)}`, '_blank');
+      }
+    }
   };
 
   return (
@@ -324,8 +328,8 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido }) => {
       <div className="sticky top-0 z-30 bg-gradient-to-b from-[#8a1538] to-[#600e26] text-white shadow-lg">
         <div className="p-4 pb-2 flex justify-between items-center">
           <h1 className="text-xl font-black flex items-center gap-2"><BookOpen size={24}/> Mi Álbum</h1>
-          <button onClick={handleDownloadFaltantes} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors" title="Descargar lista de faltantes">
-             <Download size={20} />
+          <button onClick={handleShareFaltantes} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors" title="Compartir a WhatsApp">
+             <Share2 size={20} />
           </button>
         </div>
         <div className="px-4 pb-2">
@@ -556,38 +560,42 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
     return CATALOGO_ARRAY.reduce((acc, s) => acc + (inventario[s.id]?.cantidadRepetidas || 0), 0);
   }, [inventario]);
 
-  const handleDownloadRepetidas = () => {
-    let contenido = "⚽ MIS REPETIDAS - PANINI MUNDIAL 2026 ⚽\n";
-    contenido += `Fecha de exportación: ${new Date().toLocaleDateString()}\n`;
-    contenido += `Total de cromos para intercambio: ${totalRepetidas}\n\n`;
+  const handleShareRepetidas = async () => {
+    let contenido = "⚽ *MIS REPETIDAS - PANINI 2026* ⚽\n";
+    contenido += `📅 Fecha: ${new Date().toLocaleDateString()}\n`;
+    contenido += `🔄 Disponibles para cambio: ${totalRepetidas}\n`;
 
     GRUPOS.forEach(grupo => {
       const paisesGrupo = PAISES.filter(p => p.grupo === grupo);
       let grupoTieneRepetidas = false;
-      let textoGrupo = `==========================\n${getGrupoTitulo(grupo).toUpperCase()}\n==========================\n`;
+      let textoGrupo = `\n📍 *${getGrupoTitulo(grupo).toUpperCase()}*\n`;
 
       paisesGrupo.forEach(pais => {
         const repetidasPais = CATALOGO_ARRAY.filter(s => s.sigla === pais.sigla && (inventario[s.id]?.cantidadRepetidas || 0) > 0);
         if (repetidasPais.length > 0) {
           grupoTieneRepetidas = true;
-          textoGrupo += `\n* ${pais.nombre} (${pais.sigla}):\n`;
+          textoGrupo += `🔸 *${pais.nombre}* (${pais.sigla}):\n`;
           const listaCromos = repetidasPais.map(s => `${s.id.replace('-', ' ')} (x${inventario[s.id].cantidadRepetidas})`);
           textoGrupo += listaCromos.join(', ') + '\n';
         }
       });
 
-      if (grupoTieneRepetidas) contenido += textoGrupo + '\n';
+      if (grupoTieneRepetidas) contenido += textoGrupo;
     });
 
-    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Mis_Repetidas_Panini2026_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Mis Repetidas Panini 2026',
+          text: contenido,
+        });
+      } catch (e) { console.log("Compartir cancelado o falló", e); }
+    } else {
+      navigator.clipboard.writeText(contenido);
+      if (window.confirm("¡Lista copiada al portapapeles!\n¿Deseas abrir WhatsApp Web/App para enviarla?")) {
+        window.open(`https://wa.me/?text=${encodeURIComponent(contenido)}`, '_blank');
+      }
+    }
   };
 
   return (
@@ -600,10 +608,10 @@ const TabRepetidas = ({ inventario, modificarRepetida }) => {
               Total: <span className="text-lg">{totalRepetidas}</span>
             </div>
             <button 
-              onClick={handleDownloadRepetidas} disabled={totalRepetidas === 0}
+              onClick={handleShareRepetidas} disabled={totalRepetidas === 0}
               className="bg-white/20 p-2 rounded-full hover:bg-white/30 disabled:opacity-50 transition-colors"
             >
-              <Download size={20} />
+              <Share2 size={20} />
             </button>
           </div>
         </div>
