@@ -167,19 +167,20 @@ const EMOJIS_2018 = {
 };
 const generarCatalogo2018 = () => {
   const c = [];
-  let num = 0;
-  PAISES_2018.forEach(p => {
-    if (p.sigla === 'FWC') {
-      // 42 FWC specials: 00 through 41 (sequential international numbering)
-      for (let i = 0; i < 42; i++) {
-        c.push({ id: `FWC-${i}`, sigla: 'FWC', numero: `${num}`, tipo: 'especial_fwc', grupo: 'Especial' });
-        num++;
-      }
-    } else {
-      for (let i = 1; i <= 20; i++) {
-        c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
-        num++;
-      }
+  // Especiales: 00, 1, 2, 3, 4, 5, 6, 7 (8 stickers)
+  for (let i = 0; i < 8; i++) {
+    c.push({ id: `FWC-${i}`, sigla: 'FWC', numero: i === 0 ? '00' : `${i}`, tipo: 'especial_fwc', grupo: 'Especial' });
+  }
+  // Estadios: 8 to 19 (12 stickers)
+  for (let i = 8; i <= 19; i++) {
+    c.push({ id: `STD-${i}`, sigla: 'FWC', numero: `${i}`, tipo: 'estadio', grupo: 'Especial' });
+  }
+  // Countries: 32 × 19 stickers starting at 20
+  let num = 20;
+  PAISES_2018.filter(p => p.sigla !== 'FWC').forEach(p => {
+    for (let i = 1; i <= 19; i++) {
+      c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+      num++;
     }
   });
   return c;
@@ -252,24 +253,31 @@ const EMOJIS_2010 = {
 };
 const generarCatalogo2010 = () => {
   const c = [];
-  let num = 1;
-  PAISES_2010.forEach(p => {
-    if (p.sigla === 'FWC') {
-      // 2 láminas cero: 00 (Juego Limpio) y 000 (Sello de Panini)
-      c.push({ id: 'FWC-0', sigla: 'FWC', numero: '00', tipo: 'especial_fwc', grupo: 'Especial' });
-      c.push({ id: 'FWC-00', sigla: 'FWC', numero: '000', tipo: 'especial_fwc', grupo: 'Especial' });
-    } else if (p.sigla === 'CC') {
-      // 8 especiales Coca-Cola: letras A–H al final del álbum
-      for (const l of ['A','B','C','D','E','F','G','H']) {
-        c.push({ id: `CC-${l}`, sigla: 'CC', numero: l, tipo: 'coca_cola', grupo: 'Coca-Cola' });
-      }
-    } else {
-      for (let i = 1; i <= 20; i++) {
-        c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
-        num++;
-      }
+  // Especiales: 00, 0, 1, 2, 3, 4, 5 (7 stickers)
+  c.push({ id: 'FWC-0', sigla: 'FWC', numero: '00', tipo: 'especial_fwc', grupo: 'Especial' });
+  for (let i = 0; i <= 5; i++) {
+    c.push({ id: `FWC-${i+1}`, sigla: 'FWC', numero: `${i}`, tipo: 'especial_fwc', grupo: 'Especial' });
+  }
+  // Estadios: 6 to 25 (20 stickers)
+  for (let i = 6; i <= 25; i++) {
+    c.push({ id: `STD-${i}`, sigla: 'FWC', numero: `${i}`, tipo: 'estadio', grupo: 'Especial' });
+  }
+  // Especiales: 26 to 29 (4 stickers)
+  for (let i = 26; i <= 29; i++) {
+    c.push({ id: `FWC-${i}`, sigla: 'FWC', numero: `${i}`, tipo: 'especial_fwc', grupo: 'Especial' });
+  }
+  // Countries: 32 × 19 stickers starting at 30
+  let num = 30;
+  PAISES_2010.filter(p => p.sigla !== 'FWC' && p.sigla !== 'CC').forEach(p => {
+    for (let i = 1; i <= 19; i++) {
+      c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+      num++;
     }
   });
+  // Coca-Cola A-H at the end
+  for (const l of ['A','B','C','D','E','F','G','H']) {
+    c.push({ id: `CC-${l}`, sigla: 'CC', numero: l, tipo: 'coca_cola', grupo: 'Coca-Cola' });
+  }
   return c;
 };
 
@@ -291,11 +299,11 @@ const buildConfig = ({ key, nombre, abrev, flag, c1, c2, grupos, paises, emojis,
 };
 
 const MUNDIALES_CONFIG = {
-  '2026': buildConfig({ key:'2026', nombre:'México/USA/Canadá 2026', abrev:'USA 2026', flag:'🌎', c1:'#8a1538', c2:'#600e26', grupos:['Especial','A','B','C','D','E','F','G','H','I','J','K','L','Coca-Cola'], paises:PAISES_2026, emojis:EMOJIS_2026, gen:generarCatalogo2026, totalBase:980, ccGroup:'Coca-Cola' }),
-  '2022': buildConfig({ key:'2022', nombre:'Qatar 2022', abrev:'Qatar 2022', flag:'🇶🇦', c1:'#7c3aed', c2:'#5b21b6', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2022, emojis:EMOJIS_2022, gen:generarCatalogo2022, totalBase:670, ccGroup:'Coca-Cola' }),
-  '2018': buildConfig({ key:'2018', nombre:'Rusia 2018', abrev:'Rusia 2018', flag:'🇷🇺', c1:'#1d4ed8', c2:'#1e3a8a', grupos:['Especial','A','B','C','D','E','F','G','H'], paises:PAISES_2018, emojis:EMOJIS_2018, gen:generarCatalogo2018, totalBase:682, ccGroup:null }),
+  '2026': buildConfig({ key:'2026', nombre:'México/USA/Canadá 2026', abrev:'USA 2026', flag:'🌎', c1:'#8a1538', c2:'#600e26', grupos:['Especial','A','B','C','D','E','F','G','H','I','J','K','L','Coca-Cola'], paises:PAISES_2026, emojis:EMOJIS_2026, gen:generarCatalogo2026, totalBase:994, ccGroup:null }),
+  '2022': buildConfig({ key:'2022', nombre:'Qatar 2022', abrev:'Qatar 2022', flag:'🇶🇦', c1:'#7c3aed', c2:'#5b21b6', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2022, emojis:EMOJIS_2022, gen:generarCatalogo2022, totalBase:678, ccGroup:null }),
+  '2018': buildConfig({ key:'2018', nombre:'Rusia 2018', abrev:'Rusia 2018', flag:'🇷🇺', c1:'#1d4ed8', c2:'#1e3a8a', grupos:['Especial','A','B','C','D','E','F','G','H'], paises:PAISES_2018, emojis:EMOJIS_2018, gen:generarCatalogo2018, totalBase:628, ccGroup:null }),
   '2014': buildConfig({ key:'2014', nombre:'Brasil 2014', abrev:'Brasil 2014', flag:'🇧🇷', c1:'#15803d', c2:'#14532d', grupos:['A','B','C','D','E','F','G','H'], paises:PAISES_2014, emojis:EMOJIS_2014, gen:generarCatalogo2014, totalBase:640, ccGroup:null }),
-  '2010': buildConfig({ key:'2010', nombre:'Sudáfrica 2010', abrev:'S. África 2010', flag:'🇿🇦', c1:'#d97706', c2:'#92400e', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2010, emojis:EMOJIS_2010, gen:generarCatalogo2010, totalBase:640, ccGroup:'Coca-Cola' }),
+  '2010': buildConfig({ key:'2010', nombre:'Sudáfrica 2010', abrev:'S. África 2010', flag:'🇿🇦', c1:'#d97706', c2:'#92400e', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2010, emojis:EMOJIS_2010, gen:generarCatalogo2010, totalBase:647, ccGroup:null }),
 };
 
 const MUNDIALES_ORDER = ['2026', '2022', '2018', '2014', '2010'];
@@ -388,14 +396,13 @@ function usePaniniState(mundialKey) {
 
 function useAlbumStats(inventario, config) {
   return useMemo(() => {
-    const ccGroup = config.ccGroup;
     let obtenidos = 0;
     const grupos = {};
     const paises = {};
 
     config.catalogoArray.forEach(s => {
       const got = inventario[s.id]?.obtenido ? 1 : 0;
-      if (s.grupo !== ccGroup) obtenidos += got;
+      obtenidos += got;
       if (!grupos[s.grupo]) grupos[s.grupo] = { obtenidos: 0, total: 0 };
       grupos[s.grupo].total++;
       grupos[s.grupo].obtenidos += got;
@@ -643,7 +650,7 @@ const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, llenarAlbum, l
   const [busqueda, setBusqueda] = useState('');
 
   const faltantes = useMemo(() =>
-    config.catalogoArray.filter(s => !inventario[s.id]?.obtenido && s.grupo !== config.ccGroup),
+    config.catalogoArray.filter(s => !inventario[s.id]?.obtenido),
     [inventario, config]
   );
 
