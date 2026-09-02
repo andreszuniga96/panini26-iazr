@@ -167,12 +167,19 @@ const EMOJIS_2018 = {
 };
 const generarCatalogo2018 = () => {
   const c = [];
+  let num = 0;
   PAISES_2018.forEach(p => {
     if (p.sigla === 'FWC') {
-      // 42 FWC stickers → 640 equipos + 42 FWC = 682 total
-      for (let i = 1; i <= 42; i++) c.push({ id: `FWC-${i}`, sigla: 'FWC', numero: `${i}`, tipo: 'especial_fwc', grupo: 'Especial' });
+      // 42 FWC specials: 00 through 41 (sequential international numbering)
+      for (let i = 0; i < 42; i++) {
+        c.push({ id: `FWC-${i}`, sigla: 'FWC', numero: `${num}`, tipo: 'especial_fwc', grupo: 'Especial' });
+        num++;
+      }
     } else {
-      for (let i = 1; i <= 20; i++) c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${i}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+      for (let i = 1; i <= 20; i++) {
+        c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+        num++;
+      }
     }
   });
   return c;
@@ -205,9 +212,13 @@ const EMOJIS_2014 = {
 };
 const generarCatalogo2014 = () => {
   const c = [];
-  // 32 equipos × 20 = 640 láminas total
+  let num = 0;
+  // 32 equipos × 20 = 640 láminas (00-639, secuencial clásico)
   PAISES_2014.forEach(p => {
-    for (let i = 1; i <= 20; i++) c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${i}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+    for (let i = 1; i <= 20; i++) {
+      c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+      num++;
+    }
   });
   return c;
 };
@@ -218,6 +229,7 @@ const generarCatalogo2014 = () => {
  * ==========================================
  */
 const PAISES_2010 = [
+  { sigla: 'FWC', nombre: 'Especiales FIFA', grupo: 'Especial' },
   { sigla: 'RSA', nombre: 'Sudáfrica', grupo: 'A' }, { sigla: 'MEX', nombre: 'México', grupo: 'A' }, { sigla: 'URU', nombre: 'Uruguay', grupo: 'A' }, { sigla: 'FRA', nombre: 'Francia', grupo: 'A' },
   { sigla: 'ARG', nombre: 'Argentina', grupo: 'B' }, { sigla: 'NGA', nombre: 'Nigeria', grupo: 'B' }, { sigla: 'KOR', nombre: 'Corea del Sur', grupo: 'B' }, { sigla: 'GRE', nombre: 'Grecia', grupo: 'B' },
   { sigla: 'ENG', nombre: 'Inglaterra', grupo: 'C' }, { sigla: 'USA', nombre: 'Estados Unidos', grupo: 'C' }, { sigla: 'ALG', nombre: 'Argelia', grupo: 'C' }, { sigla: 'SVN', nombre: 'Eslovenia', grupo: 'C' },
@@ -229,7 +241,7 @@ const PAISES_2010 = [
   { sigla: 'CC', nombre: 'Coca-Cola (Especiales)', grupo: 'Coca-Cola' },
 ];
 const EMOJIS_2010 = {
-  RSA:'🇿🇦', MEX:'🇲🇽', URU:'🇺🇾', FRA:'🇫🇷',
+  FWC:'📜', RSA:'🇿🇦', MEX:'🇲🇽', URU:'🇺🇾', FRA:'🇫🇷',
   ARG:'🇦🇷', NGA:'🇳🇬', KOR:'🇰🇷', GRE:'🇬🇷',
   ENG:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', USA:'🇺🇸', ALG:'🇩🇿', SVN:'🇸🇮',
   GER:'🇩🇪', AUS:'🇦🇺', SRB:'🇷🇸', GHA:'🇬🇭',
@@ -240,14 +252,22 @@ const EMOJIS_2010 = {
 };
 const generarCatalogo2010 = () => {
   const c = [];
+  let num = 1;
   PAISES_2010.forEach(p => {
-    if (p.sigla === 'CC') {
-      // 8 especiales Coca-Cola: letras A–H (Zakumi, póster, aeroplano, arquero…)
+    if (p.sigla === 'FWC') {
+      // 2 láminas cero: 00 (Juego Limpio) y 000 (Sello de Panini)
+      c.push({ id: 'FWC-0', sigla: 'FWC', numero: '00', tipo: 'especial_fwc', grupo: 'Especial' });
+      c.push({ id: 'FWC-00', sigla: 'FWC', numero: '000', tipo: 'especial_fwc', grupo: 'Especial' });
+    } else if (p.sigla === 'CC') {
+      // 8 especiales Coca-Cola: letras A–H al final del álbum
       for (const l of ['A','B','C','D','E','F','G','H']) {
         c.push({ id: `CC-${l}`, sigla: 'CC', numero: l, tipo: 'coca_cola', grupo: 'Coca-Cola' });
       }
     } else {
-      for (let i = 1; i <= 20; i++) c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${i}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+      for (let i = 1; i <= 20; i++) {
+        c.push({ id: `${p.sigla}-${i}`, sigla: p.sigla, numero: `${num}`, tipo: i===1?'escudo_especial':i===2?'grupal':'retrato', grupo: p.grupo });
+        num++;
+      }
     }
   });
   return c;
@@ -275,7 +295,7 @@ const MUNDIALES_CONFIG = {
   '2022': buildConfig({ key:'2022', nombre:'Qatar 2022', abrev:'Qatar 2022', flag:'🇶🇦', c1:'#7c3aed', c2:'#5b21b6', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2022, emojis:EMOJIS_2022, gen:generarCatalogo2022, totalBase:670, ccGroup:'Coca-Cola' }),
   '2018': buildConfig({ key:'2018', nombre:'Rusia 2018', abrev:'Rusia 2018', flag:'🇷🇺', c1:'#1d4ed8', c2:'#1e3a8a', grupos:['Especial','A','B','C','D','E','F','G','H'], paises:PAISES_2018, emojis:EMOJIS_2018, gen:generarCatalogo2018, totalBase:682, ccGroup:null }),
   '2014': buildConfig({ key:'2014', nombre:'Brasil 2014', abrev:'Brasil 2014', flag:'🇧🇷', c1:'#15803d', c2:'#14532d', grupos:['A','B','C','D','E','F','G','H'], paises:PAISES_2014, emojis:EMOJIS_2014, gen:generarCatalogo2014, totalBase:640, ccGroup:null }),
-  '2010': buildConfig({ key:'2010', nombre:'Sudáfrica 2010', abrev:'S. África 2010', flag:'🇿🇦', c1:'#d97706', c2:'#92400e', grupos:['A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2010, emojis:EMOJIS_2010, gen:generarCatalogo2010, totalBase:640, ccGroup:'Coca-Cola' }),
+  '2010': buildConfig({ key:'2010', nombre:'Sudáfrica 2010', abrev:'S. África 2010', flag:'🇿🇦', c1:'#d97706', c2:'#92400e', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2010, emojis:EMOJIS_2010, gen:generarCatalogo2010, totalBase:640, ccGroup:'Coca-Cola' }),
 };
 
 const MUNDIALES_ORDER = ['2026', '2022', '2018', '2014', '2010'];
@@ -427,7 +447,7 @@ const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObteni
   const handlePressStart = (id, obtenido) => {
     if (!obtenido) return;
     pressTimer.current = setTimeout(() => {
-      if (window.confirm(`¿Quitar la lámina ${id.replace('-', ' ')} del álbum?`)) removerCromoObtenido(id);
+      if (window.confirm(`¿Quitar la lámina ${id} del álbum?`)) removerCromoObtenido(id);
     }, 800);
   };
   const handlePressEnd = () => { if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; } };
@@ -558,7 +578,7 @@ const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObteni
                                 style={{ height: '60px', touchAction: 'manipulation', minHeight: '44px' }}
                               >
                                 <span className={`text-[11px] font-black tracking-tight ${obtenido ? 'text-emerald-900' : isPending ? 'text-blue-700' : 'text-gray-500'}`}>
-                                  {sticker.id.replace('-', ' ')}
+                                  {sticker.numero}
                                 </span>
                                 {obtenido && <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />}
                               </div>
@@ -662,7 +682,7 @@ const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, config }) => {
                       className={`px-3 py-2 rounded-lg font-bold text-sm border transition-all ${isPending ? 'bg-blue-600 text-white border-blue-700 shadow scale-105' : 'bg-white text-gray-600 border-gray-200'}`}
                       style={{ touchAction: 'manipulation' }}
                     >
-                      {s.id.replace('-', ' ')}
+                      {s.numero}
                     </button>
                   );
                 })}
@@ -800,7 +820,7 @@ const TabRepetidas = React.memo(({ inventario, modificarRepetida, config }) => {
                                 style={{ height: '60px', touchAction: 'manipulation', minHeight: '44px' }}
                               >
                                 <span className={`text-[11px] font-black tracking-tight ${cant > 0 ? 'text-amber-900 mb-1' : 'text-gray-500'}`}>
-                                  {sticker.id.replace('-', ' ')}
+                                  {sticker.numero}
                                 </span>
                                 {cant > 0 && (
                                   <div className="flex items-center justify-between w-[92%] px-0.5 py-0.5 bg-white/80 rounded-full shadow-sm" onClick={e => e.stopPropagation()}>
@@ -874,7 +894,7 @@ const TabIntercambios = React.memo(({ inventario, ejecutarIntercambioMasivo, con
                   <button key={s.id} onClick={() => toggleDoy(s.id, max)}
                     className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${selec > 0 ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200'}`}
                     style={{ touchAction: 'manipulation' }}>
-                    <span className="font-bold text-[13px]">{s.id.replace('-', ' ')}</span>
+                    <span className="font-bold text-[13px]">{s.numero}</span>
                     {selec > 0
                       ? <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Dar {selec}</span>
                       : <span className="text-[10px] text-gray-400">Disp: {max}</span>}
@@ -912,7 +932,7 @@ const TabIntercambios = React.memo(({ inventario, ejecutarIntercambioMasivo, con
                         <div key={s.id} onClick={() => toggleRecibo(s.id)}
                           className={`py-3 rounded-lg flex items-center justify-center font-bold text-[12px] cursor-pointer border transition-all ${reciboIds.has(s.id) ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-200'}`}
                           style={{ touchAction: 'manipulation' }}>
-                          {s.id.replace('-', ' ')}
+                          {s.numero}
                         </div>
                       ))}
                     </div>
