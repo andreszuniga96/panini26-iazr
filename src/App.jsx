@@ -20,7 +20,7 @@ const loadInventario = (storageKey) => {
       });
     }
     return inv;
-  } catch (e) { return {}; }
+  } catch { return {}; }
 };
 
 const saveInventario = (storageKey, inventario) => {
@@ -291,13 +291,17 @@ function usePaniniState(mundialKey) {
   const [inventario, setInventario] = useState({});
 
   useEffect(() => {
+    // Reset state and load from localStorage deferred to next frame
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setInventario({});
-    const t = setTimeout(() => {
+    let raf;
+    const load = () => {
       setInventario(loadInventario(config.storageKey));
       setLoading(false);
-    }, 80);
-    return () => clearTimeout(t);
+    };
+    raf = requestAnimationFrame(() => { raf = requestAnimationFrame(load); });
+    return () => { if (raf) cancelAnimationFrame(raf); };
   }, [mundialKey, config.storageKey]);
 
   const hacerCommitNuevas = useCallback((ids) => {
@@ -408,7 +412,7 @@ const WorldSelector = ({ mundialActivo, setMundialActivo }) => (
  * 11. TAB: MI ÁLBUM
  * ==========================================
  */
-const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido, config }) => {
+const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObtenido, config }) => {
   const stats = useAlbumStats(inventario, config);
   const [pendingAdds, setPendingAdds] = useState(new Set());
   const [openGroups, setOpenGroups] = useState(() => ({ [config.grupos[0]]: true }));
@@ -438,7 +442,7 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido, config 
       if (f.length > 0 && p.sigla !== 'CC') text += `${p.sigla} ${config.emojis[p.sigla]||''}: ${f.map(s => s.numero).join(', ')}\n`;
     });
     text += '\nhttps://panini26.vercel.app/';
-    if (navigator.share) { try { await navigator.share({ title: `Faltantes ${config.nombre}`, text }); } catch(e) {} }
+    if (navigator.share) { try { await navigator.share({ title: `Faltantes ${config.nombre}`, text }); } catch { /* user cancelled */ } }
     else { navigator.clipboard.writeText(text); alert('¡Lista copiada al portapapeles!'); }
   };
 
@@ -585,14 +589,14 @@ const TabAlbum = ({ inventario, hacerCommitNuevas, removerCromoObtenido, config 
       )}
     </div>
   );
-};
+});
 
 /**
  * ==========================================
  * 12. TAB: FALTANTES EXPRESS
  * ==========================================
  */
-const TabFaltantes = ({ inventario, hacerCommitNuevas, config }) => {
+const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, config }) => {
   const [pendingAdds, setPendingAdds] = useState(new Set());
   const [busqueda, setBusqueda] = useState('');
 
@@ -605,8 +609,8 @@ const TabFaltantes = ({ inventario, hacerCommitNuevas, config }) => {
   const handleConfirm = () => { hacerCommitNuevas(Array.from(pendingAdds)); setPendingAdds(new Set()); };
 
   return (
-    <div className="pb-28 bg-gray-50 min-h-screen">
-      <div className="sticky top-0 z-30 text-white shadow-lg" style={{ background: 'linear-gradient(to bottom, #1d4ed8, #1e3a8a)' }}>
+    <div className="pb-28 bg-gray-50">
+      <div className="sticky top-0 z-30 text-white shadow-lg" style={{ background: config.gradient }}>
         <div className="p-4 pb-2 flex justify-between items-center">
           <div>
             <h1 className="text-lg font-black flex items-center gap-2"><ListChecks size={22} /> Faltantes Express</h1>
@@ -682,14 +686,14 @@ const TabFaltantes = ({ inventario, hacerCommitNuevas, config }) => {
       )}
     </div>
   );
-};
+});
 
 /**
  * ==========================================
  * 13. TAB: MIS REPETIDAS
  * ==========================================
  */
-const TabRepetidas = ({ inventario, modificarRepetida, config }) => {
+const TabRepetidas = React.memo(({ inventario, modificarRepetida, config }) => {
   const [openGroups, setOpenGroups] = useState(() => ({ [config.grupos[0]]: true }));
   const [busqueda, setBusqueda] = useState('');
 
@@ -710,7 +714,7 @@ const TabRepetidas = ({ inventario, modificarRepetida, config }) => {
       }
     });
     text += '\nhttps://panini26.vercel.app/';
-    if (navigator.share) { try { await navigator.share({ title: `Repetidas ${config.nombre}`, text }); } catch(e) {} }
+    if (navigator.share) { try { await navigator.share({ title: `Repetidas ${config.nombre}`, text }); } catch { /* user cancelled */ } }
     else { navigator.clipboard.writeText(text); alert('¡Lista copiada!'); }
   };
 
@@ -820,14 +824,14 @@ const TabRepetidas = ({ inventario, modificarRepetida, config }) => {
       </div>
     </div>
   );
-};
+});
 
 /**
  * ==========================================
  * 14. TAB: INTERCAMBIOS
  * ==========================================
  */
-const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo, config }) => {
+const TabIntercambios = React.memo(({ inventario, ejecutarIntercambioMasivo, config }) => {
   const [step, setStep] = useState(1);
   const [doyCantidades, setDoyCantidades] = useState({});
   const [reciboIds, setReciboIds] = useState(new Set());
@@ -848,7 +852,7 @@ const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo, config }) => {
   const totalDoy = Object.values(doyCantidades).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="pb-28 bg-gray-50 min-h-screen">
+    <div className="pb-28 bg-gray-50">
       <div className="bg-white p-4 shadow-sm sticky top-0 z-10 border-b border-gray-100">
         <h2 className="text-lg font-bold flex items-center gap-2 text-emerald-700"><RefreshCw size={22} /> Nuevo Intercambio</h2>
         <p className="text-[10px] text-gray-400 mt-0.5">{config.nombre}</p>
@@ -959,7 +963,7 @@ const TabIntercambios = ({ inventario, ejecutarIntercambioMasivo, config }) => {
       </div>
     </div>
   );
-};
+});
 
 /**
  * ==========================================
@@ -990,12 +994,12 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans text-gray-900 mx-auto max-w-[480px] shadow-2xl relative flex flex-col" style={{ minHeight: '100dvh' }}>
+    <div className="h-dvh bg-gray-100 font-sans text-gray-900 mx-auto max-w-[480px] shadow-2xl relative flex flex-col overflow-hidden">
       {/* World selector – siempre visible en la cima */}
       <WorldSelector mundialActivo={mundialActivo} setMundialActivo={(key) => { setMundialActivo(key); setTabActivo('album'); }} />
 
       {/* Contenido principal scrollable */}
-      <main className="flex-1 overflow-y-auto hide-scrollbar" style={{ overscrollBehavior: 'contain' }}>
+      <main className="flex-1 overflow-y-auto hide-scrollbar">
         {tabActivo === 'album' && (
           <TabAlbum key={mundialActivo} inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} removerCromoObtenido={state.removerCromoObtenido} config={config} />
         )}
