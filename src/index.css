@@ -1,10 +1,147 @@
 @import "tailwindcss";
 
-/* Ocultar scrollbar para que se vea como app nativa */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+/* ================================================
+   SCROLLBAR INVISIBLE (app nativa)
+   ================================================ */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ================================================
+   SAFE AREA – soporte notch iOS / punch-hole Android
+   ================================================ */
+:root {
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
 }
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+/* ================================================
+   TEXT SIZE ADJUST – evita que iOS/Android
+   agranden el texto al rotar o hacer zoom
+   ================================================ */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Smooth scrolling nativo en iOS */
+  -webkit-overflow-scrolling: touch;
 }
+
+/* ================================================
+   BASE BODY – dark por defecto (la app lo sobreescribe)
+   ================================================ */
+body {
+  margin: 0;
+  padding: 0;
+  /* Elimina el rebote de overscroll (rubber-band) en iOS */
+  overscroll-behavior-y: contain;
+  /* Momentum scrolling en iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Fondo oscuro mientras carga */
+  background-color: #030712;
+}
+
+/* ================================================
+   TOUCH OPTIMIZATIONS
+   - Elimina delay de 300ms en toda la app
+   - Quita el highlight azul/gris al tocar en Android
+   ================================================ */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /* Evita menú contextual largo-presión en iOS */
+}
+
+/* Solo restaurar user-select en inputs para poder seleccionar texto */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+button, [role="button"], a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* ================================================
+   FONT SIZE MÍNIMO en inputs → evita zoom en iOS
+   (iOS hace zoom automático si font-size < 16px)
+   ================================================ */
+input, select, textarea {
+  font-size: max(16px, 1rem) !important;
+}
+
+/* ================================================
+   FOCUS VISIBLE – estilo de foco accesible sin outline
+   feo en mobile (el outline solo se ve al navegar con
+   teclado físico / switch access en Android)
+   ================================================ */
+:focus { outline: none; }
+:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* ================================================
+   BOTONES – área mínima de toque 44×44px (Apple HIG)
+   ================================================ */
+button {
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* Excepción: botones inline pequeños (+ / -) en repetidas
+   usan área extendida via padding en su contenedor */
+button.touch-sm {
+  min-height: unset;
+}
+
+/* ================================================
+   IMAGES – evita drag accidental en iOS
+   ================================================ */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* ================================================
+   ANIMACIONES DE ENTRADA
+   ================================================ */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in { animation: fadeSlideIn 0.18s ease-out both; }
+
+/* ================================================
+   WORLD SELECTOR – gradiente en bordes al scroll
+   ================================================ */
+.world-selector-fade-right {
+  mask-image: linear-gradient(to right, black 80%, transparent 100%);
+}
+
+/* ================================================
+   STICKER GRID – responde al tamaño de pantalla
+   En dispositivos < 360px usa 4 cols en vez de 5
+   ================================================ */
+@media (max-width: 359px) {
+  .sticker-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ================================================
+   MODAL / OVERLAY – evita que el scroll pase por
+   debajo en iOS cuando hay un overlay abierto
+   ================================================ */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* ================================================
+   SAFE AREA HELPERS – clases utilitarias para
+   compensar el notch / barra de navegación del SO
+   ================================================ */
+.pb-safe   { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pt-safe   { padding-top:    env(safe-area-inset-top,    0px); }
+.pl-safe   { padding-left:   env(safe-area-inset-left,   0px); }
+.pr-safe   { padding-right:  env(safe-area-inset-right,  0px); }

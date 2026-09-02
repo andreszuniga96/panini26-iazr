@@ -1,10 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>panini-app</title>
+
+    <!-- ================================================
+         VIEWPORT – soporte notch iOS / punch-hole Android
+         ================================================ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+
+    <!-- ================================================
+         ANDROID – Chrome / WebView
+         ================================================ -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#8a1538" />
+    <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+
+    <!-- ================================================
+         iOS – Safari / WKWebView
+         ================================================ -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Álbum Panini" />
+    <!-- Evitar que iOS redimensione texto al rotar -->
+    <meta name="HandheldFriendly" content="True" />
+
+    <!-- ================================================
+         SEO
+         ================================================ -->
+    <meta name="description" content="Gestor de álbum Panini para Mundiales: 2026, 2022, 2018, 2014 y 2010. Controla tus láminas, faltantes, repetidas e intercambios." />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Álbum Panini – Gestiona tus láminas" />
+    <meta property="og:description" content="Controla tus láminas Panini del Mundial: obtenidas, faltantes, repetidas e intercambios." />
+    <meta property="og:locale" content="es_ES" />
+
+    <title>Álbum Panini – Gestiona tus láminas</title>
   </head>
   <body>
     <div id="root"></div>
