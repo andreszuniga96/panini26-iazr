@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   BookOpen, RefreshCw, Plus, Minus, Search,
-  CheckCircle2, ArrowRight, Layers,
+  CheckCircle2, ArrowRight, Layers, Trash2,
   Save, ChevronDown, ChevronUp, Share2, ListChecks
 } from 'lucide-react';
 
@@ -369,7 +369,21 @@ function usePaniniState(mundialKey) {
     });
   }, [config]);
 
-  return { loading, inventario, hacerCommitNuevas, modificarRepetida, removerCromoObtenido, ejecutarIntercambioMasivo };
+  const llenarAlbum = useCallback(() => {
+    const next = {};
+    config.catalogoArray.forEach(s => {
+      next[s.id] = { obtenido: true, cantidadRepetidas: 0 };
+    });
+    setInventario(next);
+    saveInventario(config.storageKey, next);
+  }, [config]);
+
+  const limpiarAlbum = useCallback(() => {
+    setInventario({});
+    try { localStorage.removeItem(config.storageKey); } catch (e) { console.error('Clear error:', e); }
+  }, [config]);
+
+  return { loading, inventario, hacerCommitNuevas, modificarRepetida, removerCromoObtenido, ejecutarIntercambioMasivo, llenarAlbum, limpiarAlbum };
 }
 
 function useAlbumStats(inventario, config) {
@@ -432,7 +446,7 @@ const WorldSelector = ({ mundialActivo, setMundialActivo }) => (
  * 11. TAB: MI ÁLBUM
  * ==========================================
  */
-const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObtenido, config }) => {
+const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObtenido, llenarAlbum, limpiarAlbum, config }) => {
   const stats = useAlbumStats(inventario, config);
   const [pendingAdds, setPendingAdds] = useState(new Set());
   const [openGroups, setOpenGroups] = useState(() => ({ [config.grupos[0]]: true }));
@@ -474,9 +488,17 @@ const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObteni
             <h1 className="text-lg font-black flex items-center gap-2"><BookOpen size={22} /> Mi Álbum</h1>
             <p className="text-[10px] opacity-60 mt-0.5">{config.nombre}</p>
           </div>
-          <button onClick={handleShare} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors" title="Compartir faltantes">
-            <Share2 size={20} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => { if (window.confirm('¿Marcar TODAS las láminas como obtenidas? Se perderá el progreso actual.')) llenarAlbum(); }} className="bg-emerald-500/80 p-2 rounded-full hover:bg-emerald-500 transition-colors" title="Llenar álbum 100%">
+              <CheckCircle2 size={18} />
+            </button>
+            <button onClick={() => { if (window.confirm('¿Limpiar TODA la información del álbum? Esta acción no se puede deshacer.')) limpiarAlbum(); }} className="bg-red-500/80 p-2 rounded-full hover:bg-red-500 transition-colors" title="Limpiar álbum 0%">
+              <Trash2 size={18} />
+            </button>
+            <button onClick={handleShare} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors" title="Compartir faltantes">
+              <Share2 size={20} />
+            </button>
+          </div>
         </div>
         <div className="px-4 pb-2">
           <div className="flex justify-between items-center bg-black/20 rounded-xl p-3">
@@ -616,7 +638,7 @@ const TabAlbum = React.memo(({ inventario, hacerCommitNuevas, removerCromoObteni
  * 12. TAB: FALTANTES EXPRESS
  * ==========================================
  */
-const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, config }) => {
+const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, llenarAlbum, limpiarAlbum, config }) => {
   const [pendingAdds, setPendingAdds] = useState(new Set());
   const [busqueda, setBusqueda] = useState('');
 
@@ -636,8 +658,16 @@ const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, config }) => {
             <h1 className="text-lg font-black flex items-center gap-2"><ListChecks size={22} /> Faltantes Express</h1>
             <p className="text-[10px] opacity-60 mt-0.5">{config.nombre}</p>
           </div>
-          <div className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-bold">
-            Faltan: <span className="text-xl font-black">{faltantes.length}</span>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => { if (window.confirm('¿Marcar TODAS las láminas como obtenidas? Se perderá el progreso actual.')) llenarAlbum(); }} className="bg-emerald-500/80 p-2 rounded-full hover:bg-emerald-500 transition-colors" title="Llenar álbum 100%">
+              <CheckCircle2 size={18} />
+            </button>
+            <button onClick={() => { if (window.confirm('¿Limpiar TODA la información del álbum? Esta acción no se puede deshacer.')) limpiarAlbum(); }} className="bg-red-500/80 p-2 rounded-full hover:bg-red-500 transition-colors" title="Limpiar álbum 0%">
+              <Trash2 size={18} />
+            </button>
+            <div className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-bold">
+              Faltan: <span className="text-xl font-black">{faltantes.length}</span>
+            </div>
           </div>
         </div>
         <div className="px-4 pb-3">
@@ -713,7 +743,7 @@ const TabFaltantes = React.memo(({ inventario, hacerCommitNuevas, config }) => {
  * 13. TAB: MIS REPETIDAS
  * ==========================================
  */
-const TabRepetidas = React.memo(({ inventario, modificarRepetida, config }) => {
+const TabRepetidas = React.memo(({ inventario, modificarRepetida, llenarAlbum, limpiarAlbum, config }) => {
   const [openGroups, setOpenGroups] = useState(() => ({ [config.grupos[0]]: true }));
   const [busqueda, setBusqueda] = useState('');
 
@@ -750,6 +780,12 @@ const TabRepetidas = React.memo(({ inventario, modificarRepetida, config }) => {
             <div className="bg-white/20 px-3 py-1.5 rounded-full text-sm font-bold">
               Total: <span className="text-xl font-black">{totalRepetidas}</span>
             </div>
+            <button onClick={() => { if (window.confirm('¿Marcar TODAS las láminas como obtenidas? Se perderá el progreso actual.')) llenarAlbum(); }} className="bg-emerald-500/80 p-2 rounded-full hover:bg-emerald-500 transition-colors" title="Llenar álbum 100%">
+              <CheckCircle2 size={18} />
+            </button>
+            <button onClick={() => { if (window.confirm('¿Limpiar TODA la información del álbum? Esta acción no se puede deshacer.')) limpiarAlbum(); }} className="bg-red-500/80 p-2 rounded-full hover:bg-red-500 transition-colors" title="Limpiar álbum 0%">
+              <Trash2 size={18} />
+            </button>
             <button onClick={handleShare} disabled={totalRepetidas === 0}
               className="bg-white/20 p-2 rounded-full hover:bg-white/30 disabled:opacity-40 transition-colors" style={{ touchAction: 'manipulation' }}>
               <Share2 size={20} />
@@ -851,7 +887,7 @@ const TabRepetidas = React.memo(({ inventario, modificarRepetida, config }) => {
  * 14. TAB: INTERCAMBIOS
  * ==========================================
  */
-const TabIntercambios = React.memo(({ inventario, ejecutarIntercambioMasivo, config }) => {
+const TabIntercambios = React.memo(({ inventario, ejecutarIntercambioMasivo, llenarAlbum, limpiarAlbum, config }) => {
   const [step, setStep] = useState(1);
   const [doyCantidades, setDoyCantidades] = useState({});
   const [reciboIds, setReciboIds] = useState(new Set());
@@ -874,8 +910,20 @@ const TabIntercambios = React.memo(({ inventario, ejecutarIntercambioMasivo, con
   return (
     <div className="pb-28 bg-gray-50">
       <div className="bg-white p-4 shadow-sm sticky top-0 z-10 border-b border-gray-100">
-        <h2 className="text-lg font-bold flex items-center gap-2 text-emerald-700"><RefreshCw size={22} /> Nuevo Intercambio</h2>
-        <p className="text-[10px] text-gray-400 mt-0.5">{config.nombre}</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-bold flex items-center gap-2 text-emerald-700"><RefreshCw size={22} /> Nuevo Intercambio</h2>
+            <p className="text-[10px] text-gray-400 mt-0.5">{config.nombre}</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => { if (window.confirm('¿Marcar TODAS las láminas como obtenidas? Se perderá el progreso actual.')) llenarAlbum(); }} className="bg-emerald-500 p-2 rounded-full hover:bg-emerald-600 transition-colors" title="Llenar álbum 100%">
+              <CheckCircle2 size={18} />
+            </button>
+            <button onClick={() => { if (window.confirm('¿Limpiar TODA la información del álbum? Esta acción no se puede deshacer.')) limpiarAlbum(); }} className="bg-red-500 p-2 rounded-full hover:bg-red-600 transition-colors" title="Limpiar álbum 0%">
+              <Trash2 size={18} />
+            </button>
+          </div>
+        </div>
         <div className="flex gap-2 mt-3">
           {[1,2,3].map(s => <div key={s} className={`h-2 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-emerald-600' : 'bg-gray-200'}`} />)}
         </div>
@@ -1021,16 +1069,16 @@ export default function App() {
       {/* Contenido principal scrollable */}
       <main className="flex-1 overflow-y-auto hide-scrollbar">
         {tabActivo === 'album' && (
-          <TabAlbum key={mundialActivo} inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} removerCromoObtenido={state.removerCromoObtenido} config={config} />
+          <TabAlbum key={mundialActivo} inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} removerCromoObtenido={state.removerCromoObtenido} llenarAlbum={state.llenarAlbum} limpiarAlbum={state.limpiarAlbum} config={config} />
         )}
         {tabActivo === 'faltantes' && (
-          <TabFaltantes key={mundialActivo} inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} config={config} />
+          <TabFaltantes key={mundialActivo} inventario={state.inventario} hacerCommitNuevas={state.hacerCommitNuevas} llenarAlbum={state.llenarAlbum} limpiarAlbum={state.limpiarAlbum} config={config} />
         )}
         {tabActivo === 'repetidas' && (
-          <TabRepetidas key={mundialActivo} inventario={state.inventario} modificarRepetida={state.modificarRepetida} config={config} />
+          <TabRepetidas key={mundialActivo} inventario={state.inventario} modificarRepetida={state.modificarRepetida} llenarAlbum={state.llenarAlbum} limpiarAlbum={state.limpiarAlbum} config={config} />
         )}
         {tabActivo === 'intercambios' && (
-          <TabIntercambios key={mundialActivo} inventario={state.inventario} ejecutarIntercambioMasivo={state.ejecutarIntercambioMasivo} config={config} />
+          <TabIntercambios key={mundialActivo} inventario={state.inventario} ejecutarIntercambioMasivo={state.ejecutarIntercambioMasivo} llenarAlbum={state.llenarAlbum} limpiarAlbum={state.limpiarAlbum} config={config} />
         )}
       </main>
 
