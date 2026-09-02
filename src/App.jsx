@@ -183,6 +183,10 @@ const generarCatalogo2018 = () => {
       num++;
     }
   });
+  // Leyendas: 660 to 669 (10 stickers)
+  for (let i = 660; i <= 669; i++) {
+    c.push({ id: `LEY-${i}`, sigla: 'FWC', numero: `${i}`, tipo: 'leyenda', grupo: 'Especial' });
+  }
   return c;
 };
 
@@ -301,7 +305,7 @@ const buildConfig = ({ key, nombre, abrev, flag, c1, c2, grupos, paises, emojis,
 const MUNDIALES_CONFIG = {
   '2026': buildConfig({ key:'2026', nombre:'México/USA/Canadá 2026', abrev:'USA 2026', flag:'🌎', c1:'#8a1538', c2:'#600e26', grupos:['Especial','A','B','C','D','E','F','G','H','I','J','K','L','Coca-Cola'], paises:PAISES_2026, emojis:EMOJIS_2026, gen:generarCatalogo2026, totalBase:994, ccGroup:null }),
   '2022': buildConfig({ key:'2022', nombre:'Qatar 2022', abrev:'Qatar 2022', flag:'🇶🇦', c1:'#7c3aed', c2:'#5b21b6', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2022, emojis:EMOJIS_2022, gen:generarCatalogo2022, totalBase:678, ccGroup:null }),
-  '2018': buildConfig({ key:'2018', nombre:'Rusia 2018', abrev:'Rusia 2018', flag:'🇷🇺', c1:'#1d4ed8', c2:'#1e3a8a', grupos:['Especial','A','B','C','D','E','F','G','H'], paises:PAISES_2018, emojis:EMOJIS_2018, gen:generarCatalogo2018, totalBase:660, ccGroup:null }),
+  '2018': buildConfig({ key:'2018', nombre:'Rusia 2018', abrev:'Rusia 2018', flag:'🇷🇺', c1:'#1d4ed8', c2:'#1e3a8a', grupos:['Especial','A','B','C','D','E','F','G','H'], paises:PAISES_2018, emojis:EMOJIS_2018, gen:generarCatalogo2018, totalBase:670, ccGroup:null }),
   '2014': buildConfig({ key:'2014', nombre:'Brasil 2014', abrev:'Brasil 2014', flag:'🇧🇷', c1:'#15803d', c2:'#14532d', grupos:['A','B','C','D','E','F','G','H'], paises:PAISES_2014, emojis:EMOJIS_2014, gen:generarCatalogo2014, totalBase:640, ccGroup:null }),
   '2010': buildConfig({ key:'2010', nombre:'Sudáfrica 2010', abrev:'S. África 2010', flag:'🇿🇦', c1:'#d97706', c2:'#92400e', grupos:['Especial','A','B','C','D','E','F','G','H','Coca-Cola'], paises:PAISES_2010, emojis:EMOJIS_2010, gen:generarCatalogo2010, totalBase:647, ccGroup:null }),
 };
